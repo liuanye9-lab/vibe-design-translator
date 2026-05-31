@@ -26,11 +26,11 @@ import {
 } from "lucide-react";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  landing: "Landing Page",
-  product: "Product Page",
-  marketing: "Marketing",
-  dashboard: "Dashboard",
-  other: "Other",
+  landing: "workspace_cat_landing",
+  product: "workspace_cat_product",
+  marketing: "workspace_cat_marketing",
+  dashboard: "workspace_cat_dashboard",
+  other: "workspace_cat_other",
 };
 
 export default function WorkspacePage() {
@@ -177,9 +177,9 @@ export default function WorkspacePage() {
                       onChange={(e) => setNewProjectCategory(e.target.value)}
                       className="w-full px-3 py-2.5 rounded-xl border border-[var(--color-border)] bg-white/80 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)]/30 focus:border-[var(--color-accent-ios-blue)] transition-all"
                     >
-                      {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                      {Object.entries(CATEGORY_LABELS).map(([key, tKey]) => (
                         <option key={key} value={key}>
-                          {label}
+                          {t(tKey)}
                         </option>
                       ))}
                     </select>

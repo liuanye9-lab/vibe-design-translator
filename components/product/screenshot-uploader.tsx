@@ -3,6 +3,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react";
 import type { ScreenshotAsset } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 interface ScreenshotUploaderProps {
   value?: ScreenshotAsset | null;
@@ -21,18 +22,19 @@ export default function ScreenshotUploader({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t, tVar } = useI18n();
 
   const handleFile = useCallback(
     (file: File) => {
       setError(null);
 
       if (!ALLOWED_TYPES.includes(file.type)) {
-        setError("仅支持 PNG、JPG、WEBP 格式");
+        setError(t("screenshot_type_error"));
         return;
       }
 
       if (file.size > maxSizeMB * 1024 * 1024) {
-        setError(`文件大小不能超过 ${maxSizeMB}MB`);
+        setError(tVar("screenshot_size_error", { n: maxSizeMB }));
         return;
       }
 
@@ -49,10 +51,10 @@ export default function ScreenshotUploader({
         };
         onChange(asset);
       };
-      reader.onerror = () => setError("文件读取失败");
+      reader.onerror = () => setError(t("screenshot_read_error"));
       reader.readAsDataURL(file);
     },
-    [maxSizeMB, onChange]
+    [maxSizeMB, onChange, t, tVar]
   );
 
   const handleDrop = useCallback(
@@ -103,7 +105,7 @@ export default function ScreenshotUploader({
             <button
               onClick={handleDelete}
               className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-              title="删除截图"
+              title={t("screenshot_delete")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -135,10 +137,10 @@ export default function ScreenshotUploader({
       >
         <Upload className="w-8 h-8 mx-auto mb-3 text-gray-400" />
         <p className="text-sm text-gray-600 mb-1">
-          <span className="font-medium text-gray-800">点击上传</span> 或拖拽文件到此处
+          <span className="font-medium text-gray-800">{t("screenshot_upload_hint")}</span>
         </p>
         <p className="text-xs text-gray-400">
-          支持 PNG、JPG、WEBP，最大 {maxSizeMB}MB
+          {tVar("screenshot_format_hint", { n: maxSizeMB })}
         </p>
         <input
           ref={inputRef}

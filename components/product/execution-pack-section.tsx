@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/glass-card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { CheckCircle, AlertTriangle, Target, Layout, Eye, Zap, Shield, Terminal } from "lucide-react";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 interface ExecutionPackSectionProps {
   pack: {
@@ -30,16 +31,17 @@ const sectionIcons = {
   antiAILookChecklist: Shield,
 };
 
-const sectionTitles = {
-  strategy: "Design Strategy",
-  pageStructure: "Page Structure",
-  visualSystem: "Visual System",
-  interactionSystem: "Interaction System",
-  acceptanceCriteria: "Acceptance Criteria",
-  antiAILookChecklist: "Anti-AI-Look Checklist",
-};
+const sectionTitleKeys = {
+  strategy: "pack_strategy",
+  pageStructure: "pack_structure",
+  visualSystem: "pack_visual",
+  interactionSystem: "pack_interaction",
+  acceptanceCriteria: "pack_acceptance",
+  antiAILookChecklist: "pack_anti_ai",
+} as const;
 
 export function ExecutionPackSection({ pack, className }: ExecutionPackSectionProps) {
+  const { t } = useI18n();
   const sections = [
     { key: "strategy" as const, items: pack.strategy },
     { key: "pageStructure" as const, items: pack.pageStructure },
@@ -57,7 +59,7 @@ export function ExecutionPackSection({ pack, className }: ExecutionPackSectionPr
             <GlassCardHeader className="flex items-center gap-3">
               <Icon className="w-5 h-5 text-[var(--color-accent-ios-blue)]" />
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                {sectionTitles[section.key]}
+                {t(sectionTitleKeys[section.key])}
               </h3>
             </GlassCardHeader>
             <GlassCardContent>
@@ -81,7 +83,7 @@ export function ExecutionPackSection({ pack, className }: ExecutionPackSectionPr
         <GlassCardHeader className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-[var(--color-accent-soft-violet)]" />
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Anti-AI-Look Checklist
+            {t("pack_anti_ai")}
           </h3>
         </GlassCardHeader>
         <GlassCardContent>

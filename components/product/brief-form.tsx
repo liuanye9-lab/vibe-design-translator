@@ -16,6 +16,8 @@ import {
   AUDIENCE_OPTIONS,
   DESIRED_FEELING_OPTIONS,
   AVOIDED_FEELING_OPTIONS,
+  VISUAL_INTENSITY_LABELS,
+  CONTENT_DENSITY_LABELS,
 } from "@/lib/constants";
 import { DesignBrief, ToolType } from "@/lib/types";
 import { useDesignStore } from "@/store/use-design-store";
@@ -269,8 +271,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         {renderPillGroup(
           FIRST_IMPRESSION_OPTIONS.map((fi) => ({
             ...fi,
-            label: t(`fi_${fi.value}`),
-            description: t(`fi_${fi.value}_desc`),
+            label: t(fi.tKey),
+            description: t(fi.tKeyDesc),
           })),
           firstImpression,
           setFirstImpression
@@ -288,8 +290,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         {renderPillGroup(
           BUSINESS_PRIORITY_OPTIONS.map((bp) => ({
             ...bp,
-            label: t(`bp_${bp.value}`),
-            description: t(`bp_${bp.value}_desc`),
+            label: t(bp.tKey),
+            description: t(bp.tKeyDesc),
           })),
           businessPriority,
           setBusinessPriority
@@ -307,8 +309,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         {renderPillGroup(
           VISUAL_REFERENCE_OPTIONS.map((vr) => ({
             ...vr,
-            label: t(`vr_${vr.value}`),
-            description: t(`vr_${vr.value}_desc`),
+            label: t(vr.tKey),
+            description: t(vr.tKeyDesc),
           })),
           visualReference,
           setVisualReference
@@ -326,8 +328,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         {renderPillGroup(
           AVOIDED_AI_SMELL_OPTIONS.map((p) => ({
             ...p,
-            label: t(`ai_${p.value}`),
-            description: t(`ai_${p.value}_desc`),
+            label: t(p.tKey),
+            description: t(p.tKeyDesc),
           })),
           avoidedAISmell,
           (v) => setAvoidedAISmell(toggleStringArray(avoidedAISmell, v)),
@@ -343,8 +345,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         {renderPillGroup(
           AUDIENCE_OPTIONS.map((a) => ({
             ...a,
-            label: t(`aud_${a.value}`),
-            description: t(`aud_${a.value}_desc`),
+            label: t(a.tKey),
+            description: t(a.tKeyDesc),
           })),
           audience,
           setAudience
@@ -381,8 +383,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         </p>
         {renderPillGroup(
           DESIRED_FEELING_OPTIONS.map((f) => ({
-            value: f,
-            label: t(`feel_${f.toLowerCase()}`),
+            value: f.value,
+            label: t(f.tKey),
             description: "",
           })),
           desiredFeeling,
@@ -401,8 +403,8 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         </p>
         {renderPillGroup(
           AVOIDED_FEELING_OPTIONS.map((f) => ({
-            value: f,
-            label: t(`avoid_${f.toLowerCase()}`),
+            value: f.value,
+            label: t(f.tKey),
             description: "",
           })),
           avoidedFeeling,
@@ -448,7 +450,7 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
                   : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent-ios-blue)]"
               )}
             >
-              {t(`intensity_${level}`)}
+              {t(VISUAL_INTENSITY_LABELS[level])}
             </button>
           ))}
         </div>
@@ -471,7 +473,7 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
                   : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent-ios-blue)]"
               )}
             >
-              {t(`density_${level}`)}
+              {t(CONTENT_DENSITY_LABELS[level])}
             </button>
           ))}
         </div>

@@ -9,7 +9,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
 import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder } from "lucide-react";
-import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 const navItemsKeys = [
@@ -128,7 +127,11 @@ export function TopNav({
               </div>
             )}
 
-            <LanguageToggle />
+            {/* Language toggle temporarily hidden — English version under development */}
+            {/* <LanguageToggle /> */}
+            <div className="px-3 py-1.5 rounded-lg bg-[var(--color-surface)] text-xs text-[var(--color-text-muted)] cursor-not-allowed" title="英文版本开发中">
+              EN / 中文
+            </div>
 
             {/* Mobile menu button */}
             <button

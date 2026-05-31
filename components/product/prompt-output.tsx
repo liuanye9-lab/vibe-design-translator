@@ -12,6 +12,7 @@ import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/gl
 import { CopyButton } from "@/components/ui/copy-button";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { Terminal, Code, Sparkles, Wand2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 interface PromptOutputProps {
   prompts: Record<ToolType, string>;
@@ -44,6 +45,7 @@ export function PromptOutput({
 }: PromptOutputProps) {
   const currentPrompt = prompts[currentTool];
   const Icon = toolIcons[currentTool];
+  const { t } = useI18n();
 
   return (
     <GlassCard className={cn("", className)}>
@@ -55,10 +57,10 @@ export function PromptOutput({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                {TOOL_LABELS[currentTool]} Prompt
+                {t(TOOL_LABELS[currentTool])}{t("tool_prompt_label")}
               </h3>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                Copy and use in {TOOL_LABELS[currentTool]}
+                {t("tool_copy_hint")}{t(TOOL_LABELS[currentTool])}
               </p>
             </div>
           </div>
@@ -83,7 +85,7 @@ export function PromptOutput({
                 )}
               >
                 <ToolIcon className="w-4 h-4" />
-                <span>{TOOL_LABELS[tool]}</span>
+                <span>{t(TOOL_LABELS[tool])}</span>
               </button>
             );
           })}

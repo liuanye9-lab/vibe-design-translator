@@ -1,7 +1,3 @@
-// ============================================================
-// Vibe Design Translator - Mode Selector Component
-// ============================================================
-
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -9,34 +5,37 @@ import { UserMode } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { Lightbulb, Compass, Stethoscope } from "lucide-react";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 interface ModeSelectorProps {
   currentMode: UserMode | null;
   onSelectMode: (mode: UserMode) => void;
 }
 
-const modes = [
-  {
-    id: "has-idea" as UserMode,
-    title: "I have an idea",
-    description: "Describe your vision in detail. Perfect for when you have a clear concept but need help translating it into design specs.",
-    icon: Lightbulb,
-  },
-  {
-    id: "no-idea" as UserMode,
-    title: "I have no direction",
-    description: "Get inspired with curated design directions. Ideal for exploration and finding the right aesthetic.",
-    icon: Compass,
-  },
-  {
-    id: "diagnose" as UserMode,
-    title: "Diagnose my page",
-    description: "Identify issues with your current design. Best for fixing existing pages that feel generic.",
-    icon: Stethoscope,
-  },
-];
-
 export function ModeSelector({ currentMode, onSelectMode }: ModeSelectorProps) {
+  const { t } = useI18n();
+
+  const modes = [
+    {
+      id: "has-idea" as UserMode,
+      title: t("mode_has_idea"),
+      description: t("mode_has_idea_desc"),
+      icon: Lightbulb,
+    },
+    {
+      id: "no-idea" as UserMode,
+      title: t("mode_no_idea"),
+      description: t("mode_no_idea_desc"),
+      icon: Compass,
+    },
+    {
+      id: "diagnose" as UserMode,
+      title: t("mode_diagnose"),
+      description: t("mode_diagnose_desc"),
+      icon: Stethoscope,
+    },
+  ];
+
   return (
     <div className="grid md:grid-cols-3 gap-6">
       {modes.map((mode) => {

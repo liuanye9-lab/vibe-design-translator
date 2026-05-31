@@ -397,6 +397,72 @@ export const translations: Record<Locale, Record<string, string>> = {
     pattern_color: "Color",
     pattern_typography: "Typography",
     pattern_interaction: "Interaction",
+
+    // ---------- Mode Selector ----------
+    mode_has_idea: "I have an idea",
+    mode_has_idea_desc: "Describe your vision in detail. Perfect for when you have a clear concept but need help translating it into design specs.",
+    mode_no_idea: "I have no direction",
+    mode_no_idea_desc: "Get inspired with curated design directions. Ideal for exploration and finding the right aesthetic.",
+    mode_diagnose: "Diagnose my page",
+    mode_diagnose_desc: "Identify issues with your current design. Best for fixing existing pages that feel generic.",
+
+    // ---------- Execution Pack Sections ----------
+    pack_strategy: "Design Strategy",
+    pack_page_structure: "Page Structure",
+    pack_visual_system: "Visual System",
+    pack_interaction_system: "Interaction System",
+    pack_acceptance_criteria: "Acceptance Criteria",
+    pack_anti_ai_checklist: "Anti-AI-Look Checklist",
+
+    // ---------- Prompt Output ----------
+    tool_prompt_label: " Prompt",
+    tool_copy_hint: "Copy and use in ",
+
+    // ---------- Compiler Page ----------
+    compiler_no_brief: "No design brief found. Start from the home page.",
+    compiler_step_label: "Prompt Compiler",
+    compiler_subtitle: "Tool-Specific Prompts",
+
+    // ---------- Workspace Categories ----------
+    workspace_cat_landing: "Landing Page",
+    workspace_cat_product: "Product Page",
+    workspace_cat_marketing: "Marketing",
+    workspace_cat_dashboard: "Dashboard",
+    workspace_cat_other: "Other",
+
+    // ---------- Pricing Features ----------
+    feat_basic_direction: "Basic direction generator",
+    feat_3_exports: "3 prompt exports / month",
+    feat_unlimited_exports: "Unlimited prompt exports",
+   _feat_all_tools: "All AI tool support",
+    feat_local_storage: "localStorage persistence",
+    feat_full_library: "Full pattern library",
+    feat_export_json: "Export as JSON / Markdown",
+    feat_priority_support: "Priority support",
+    feat_shared_memory: "Shared design memory",
+    feat_brand_consistency: "Brand consistency tools",
+    feat_team_analytics: "Team analytics",
+    feat_not_basic: "Basic direction generator",
+    feat_not_full_library: "Full pattern library",
+    feat_not_export: "Export as JSON",
+    feat_not_unlimited: "Unlimited exports",
+    feat_not_brand: "Brand consistency tools",
+    feat_not_shared: "Shared design memory",
+
+    // ---------- Screenshot Uploader ----------
+    screenshot_type_error: "Only PNG, JPG, WEBP formats are supported",
+    screenshot_size_error: "File size cannot exceed {n}MB",
+    screenshot_read_error: "Failed to read file",
+    screenshot_delete: "Delete screenshot",
+    screenshot_upload_hint: "Click to upload or drag and drop",
+    screenshot_format_hint: "Supports PNG, JPG, WEBP, max {n}MB",
+
+    // ---------- Direction Card ----------
+    direction_generate_pack: "Generate Pack",
+    direction_step_label: "Step 2 of 3",
+    direction_title: "Design Direction",
+    direction_subtitle: "Choose a design direction that matches your vision. Each direction comes with a complete strategy and visual system.",
+    common_loading: "Loading...",
   },
 
   zh: {
@@ -782,6 +848,72 @@ export const translations: Record<Locale, Record<string, string>> = {
     pattern_color: "色彩",
     pattern_typography: "排版",
     pattern_interaction: "交互",
+
+    // ---------- Mode Selector ----------
+    mode_has_idea: "我有明确想法",
+    mode_has_idea_desc: "详细描述你的设计愿景。适合已有清晰概念但需要转化为设计规范的场景。",
+    mode_no_idea: "我没有方向",
+    mode_no_idea_desc: "获取精选设计方向灵感。适合探索和寻找合适审美风格的场景。",
+    mode_diagnose: "诊断我的页面",
+    mode_diagnose_desc: "识别当前设计问题。适合修复感觉像通用模板的现有页面。",
+
+    // ---------- Execution Pack Sections ----------
+    pack_strategy: "设计策略",
+    pack_page_structure: "页面结构",
+    pack_visual_system: "视觉系统",
+    pack_interaction_system: "交互系统",
+    pack_acceptance_criteria: "验收标准",
+    pack_anti_ai_checklist: "反 AI 模板检查清单",
+
+    // ---------- Prompt Output ----------
+    tool_prompt_label: " 提示词",
+    tool_copy_hint: "复制并在 ",
+
+    // ---------- Compiler Page ----------
+    compiler_no_brief: "未找到设计简报。请从首页开始。",
+    compiler_step_label: "提示词编译器",
+    compiler_subtitle: "工具专属提示词",
+
+    // ---------- Workspace Categories ----------
+    workspace_cat_landing: "落地页",
+    workspace_cat_product: "产品页",
+    workspace_cat_marketing: "营销页",
+    workspace_cat_dashboard: "仪表盘",
+    workspace_cat_other: "其他",
+
+    // ---------- Pricing Features ----------
+    feat_basic_direction: "基础设计方向生成",
+    feat_3_exports: "每月 3 次提示词导出",
+    feat_unlimited_exports: "无限提示词导出",
+    feat_all_tools: "全部 AI 工具支持",
+    feat_local_storage: "localStorage 本地持久化",
+    feat_full_library: "完整模式库",
+    feat_export_json: "导出 JSON / Markdown",
+    feat_priority_support: "优先支持",
+    feat_shared_memory: "共享设计记忆",
+    feat_brand_consistency: "品牌一致性工具",
+    feat_team_analytics: "团队数据分析",
+    feat_not_basic: "基础设计方向生成",
+    feat_not_full_library: "完整模式库",
+    feat_not_export: "导出 JSON",
+    feat_not_unlimited: "无限导出",
+    feat_not_brand: "品牌一致性工具",
+    feat_not_shared: "共享设计记忆",
+
+    // ---------- Screenshot Uploader ----------
+    screenshot_type_error: "仅支持 PNG、JPG、WEBP 格式",
+    screenshot_size_error: "文件大小不能超过 {n}MB",
+    screenshot_read_error: "文件读取失败",
+    screenshot_delete: "删除截图",
+    screenshot_upload_hint: "点击上传或拖拽文件到此处",
+    screenshot_format_hint: "支持 PNG、JPG、WEBP，最大 {n}MB",
+
+    // ---------- Direction Card ----------
+    direction_generate_pack: "生成执行包",
+    direction_step_label: "第 2 步 / 共 3 步",
+    direction_title: "设计方向",
+    direction_subtitle: "选择契合你愿景的设计方向。每个方向都附带完整的策略与视觉系统。",
+    common_loading: "加载中...",
   },
 };
 

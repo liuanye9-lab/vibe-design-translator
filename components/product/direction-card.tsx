@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { DesignDirection } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Check, Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 interface DirectionCardProps {
   direction: DesignDirection;
@@ -22,6 +23,7 @@ export function DirectionCard({
   onSelect,
   className,
 }: DirectionCardProps) {
+  const { t, tVar } = useI18n();
   return (
     <GlassCard
       variant="interactive"
@@ -57,7 +59,7 @@ export function DirectionCard({
       {/* Suitable for */}
       <div className="mb-4">
         <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)] mb-2 block">
-          Best for
+          {t("direction_card_best")}
         </span>
         <div className="flex flex-wrap gap-2">
           {direction.suitableFor.slice(0, 3).map((item) => (
@@ -74,7 +76,7 @@ export function DirectionCard({
       {/* Color system preview */}
       <div>
         <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)] mb-2 block">
-          Color mood
+          {t("direction_card_color")}
         </span>
         <div className="flex gap-2">
           {direction.colorSystem.slice(0, 4).map((color, index) => (
@@ -94,7 +96,7 @@ export function DirectionCard({
       {/* Psychological effect */}
       <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
         <span className="text-xs font-medium text-[var(--color-accent-mist-blue)]">
-          Psychological effect: {direction.psychologicalEffect}
+          {tVar("direction_card_psych", { effect: direction.psychologicalEffect })}
         </span>
       </div>
     </GlassCard>
