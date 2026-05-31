@@ -85,7 +85,7 @@ export function BriefForm({ mode }: BriefFormProps) {
       // Enhanced fields
       firstImpression: isLightMode ? undefined : firstImpression || undefined,
       businessPriority: isLightMode ? undefined : businessPriority || undefined,
-      visualReference: isLightMode ? undefined : visualReference || undefined,
+      visualReferenceTolerance: isLightMode ? undefined : visualReference || undefined,
       avoidedAISmell: isLightMode ? undefined : avoidedAISmell.length > 0 ? avoidedAISmell : undefined,
       audience: isLightMode ? undefined : audience || undefined,
     };

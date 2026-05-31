@@ -34,10 +34,13 @@ export class OpenAIProvider implements AIProvider, VisionProvider {
   }
 
   async diagnoseScreenshot(
-    screenshot: ScreenshotAsset,
+    screenshot: ScreenshotAsset | null,
     pageType?: string,
     painPoints?: string
   ): Promise<DiagnosisReport> {
+    if (!screenshot) {
+      throw new Error("OpenAI vision diagnosis requires a screenshot. Text-only diagnosis not supported yet.");
+    }
     // TODO: Use GPT-4o vision capabilities to analyze screenshot
     // - Convert dataUrl to base64
     // - Send to gpt-4o with system prompt for design diagnosis

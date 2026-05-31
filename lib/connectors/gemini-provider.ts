@@ -34,10 +34,13 @@ export class GeminiProvider implements AIProvider, VisionProvider {
   }
 
   async diagnoseScreenshot(
-    screenshot: ScreenshotAsset,
+    screenshot: ScreenshotAsset | null,
     pageType?: string,
     painPoints?: string
   ): Promise<DiagnosisReport> {
+    if (!screenshot) {
+      throw new Error("Gemini vision diagnosis requires a screenshot. Text-only diagnosis not supported yet.");
+    }
     // TODO: Use Gemini vision capabilities to analyze screenshot
     throw new Error("Gemini vision diagnosis not implemented yet. Set GOOGLE_API_KEY and implement diagnoseScreenshot().");
   }

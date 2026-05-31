@@ -21,6 +21,12 @@ interface DiagnosisReportViewProps {
   onToolChange: (tool: ToolType) => void;
   onStartNew?: () => void;
   className?: string;
+  apiMeta?: {
+    provider: string;
+    fallback: boolean;
+    tokensUsed?: number;
+    estimatedCost?: string;
+  } | null;
 }
 
 export function DiagnosisReportView({
@@ -29,6 +35,7 @@ export function DiagnosisReportView({
   onToolChange,
   onStartNew,
   className,
+  apiMeta,
 }: DiagnosisReportViewProps) {
   const router = useRouter();
   const scoreLabel = getScoreLabel(report.overallScore);
@@ -64,6 +71,38 @@ export function DiagnosisReportView({
           </div>
         </div>
       </GlassCard>
+
+      {/* API Metadata - Usage & Cost Tracking */}
+      {apiMeta && (
+        <GlassCard className="p-5">
+          <div className="flex flex-wrap gap-6 text-xs">
+            <div>
+              <span className="text-[var(--color-text-muted)] block">Provider</span>
+              <span className="font-semibold text-[var(--color-text-primary)] capitalize">
+                {apiMeta.provider === "mock" ? "Mock (Local)" : apiMeta.provider}
+              </span>
+            </div>
+            {apiMeta.fallback && (
+              <div>
+                <span className="text-[var(--color-text-muted)] block">Mode</span>
+                <span className="text-amber-600 font-medium">Fallback to Mock</span>
+              </div>
+            )}
+            {apiMeta.tokensUsed !== undefined && apiMeta.tokensUsed > 0 && (
+              <div>
+                <span className="text-[var(--color-text-muted)] block">Tokens Used</span>
+                <span className="font-mono text-[var(--color-text-primary)]">{apiMeta.tokensUsed.toLocaleString()}</span>
+              </div>
+            )}
+            {apiMeta.estimatedCost && apiMeta.estimatedCost !== "$0.00" && (
+              <div>
+                <span className="text-[var(--color-text-muted)] block">Est. Cost</span>
+                <span className="font-mono text-[var(--color-text-primary)]">{apiMeta.estimatedCost}</span>
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      )}
 
       {/* Score Breakdown */}
       <GlassCard>

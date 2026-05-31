@@ -12,12 +12,32 @@ import { PageWrapper } from "@/components/layout";
 import { SectionHeading, SectionLabel } from "@/components/ui/section-heading";
 import { DiagnosisForm } from "@/components/product/diagnosis-form";
 import { DiagnosisReportView } from "@/components/product/diagnosis-report";
-import { ScreenshotUploader } from "@/components/product/screenshot-uploader";
+import ScreenshotUploader from "@/components/product/screenshot-uploader";
 import { useDesignStore } from "@/store/use-design-store";
-import { generateMockDiagnosisReport } from "@/lib/diagnosis";
 import { DiagnosisReport, ScreenshotAsset } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, AlertTriangle } from "lucide-react";
+
+// API response types
+interface ApiSuccess<T> {
+  success: true;
+  data: T;
+  meta?: {
+    provider: string;
+    fallback: boolean;
+    tokensUsed?: number;
+    estimatedCost?: string;
+  };
+}
+
+interface ApiError {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: string;
+  };
+}
 
 export default function DiagnosisPage() {
   const router = useRouter();
@@ -42,6 +62,13 @@ export default function DiagnosisPage() {
     pageDescription: string;
     primaryPainPoint: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiMeta, setApiMeta] = useState<{
+    provider: string;
+    fallback: boolean;
+    tokensUsed?: number;
+    estimatedCost?: string;
+  } | null>(null);
 
   // Hydrate store from localStorage on mount
   useEffect(() => {
@@ -57,31 +84,51 @@ export default function DiagnosisPage() {
   }) => {
     setIsLoading(true);
     setFormData(data);
+    setError(null);
+    setApiMeta(null);
 
-    // Simulate AI analysis delay
-    await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 500));
+    try {
+      // Call server-side API route
+      const response = await fetch("/api/ai/diagnose-screenshot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          screenshot: screenshot || undefined,
+          pageType: data.pageType,
+          painPoints: data.primaryPainPoint,
+        }),
+      });
 
-    // Generate diagnosis with page type and pain point context
-    const mockReport = generateMockDiagnosisReport(data.pageType, data.primaryPainPoint);
+      const result: ApiSuccess<DiagnosisReport> | ApiError = await response.json();
 
-    // Enhance with screenshot analysis metadata if screenshot was uploaded
-    const enhancedReport: DiagnosisReport = {
-      ...mockReport,
-      screenshotAnalyzed: !!screenshot,
-      confidence: screenshot ? "medium" : (mockReport.confidence as "low" | "medium" | "high" | undefined) ?? "low",
-    };
+      if (!response.ok || !result.success) {
+        const errorResult = result as ApiError;
+        throw new Error(errorResult.error?.message || "Diagnosis request failed");
+      }
 
-    setReport(enhancedReport);
-    setDiagnosisReport(enhancedReport);
+      const apiResult = result as ApiSuccess<DiagnosisReport>;
+      const apiReport = apiResult.data;
 
-    addHistory({ type: "diagnosis_performed", data });
+      // Store API metadata for display
+      if (apiResult.meta) {
+        setApiMeta(apiResult.meta);
+      }
 
-    // Save to project if current project exists
-    if (currentProjectId) {
-      addDiagnosisToProject(enhancedReport as any);
+      setReport(apiReport);
+      setDiagnosisReport(apiReport);
+
+      addHistory({ type: "diagnosis_performed", data });
+
+      // Save to project if current project exists
+      if (currentProjectId) {
+        addDiagnosisToProject(apiReport as any);
+      }
+    } catch (err) {
+      console.error("Diagnosis error:", err);
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleStartNew = () => {
@@ -107,6 +154,29 @@ export default function DiagnosisPage() {
 
           {!report ? (
             <div className="space-y-6">
+              {/* Error State */}
+              {error && (
+                <GlassCard className="p-5 border-[var(--color-status-error)] border">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[var(--color-status-error)] flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-[var(--color-status-error)] mb-1">
+                        诊断失败
+                      </h4>
+                      <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+                        {error}
+                      </p>
+                      <button
+                        onClick={() => setError(null)}
+                        className="text-xs text-[var(--color-accent-ios-blue)] hover:underline"
+                      >
+                        返回重试
+                      </button>
+                    </div>
+                  </div>
+                </GlassCard>
+              )}
+
               {/* Screenshot Upload Section */}
               <GlassCard className="p-5">
                 <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
@@ -150,6 +220,7 @@ export default function DiagnosisPage() {
               selectedTool={selectedTool}
               onToolChange={setSelectedTool}
               onStartNew={handleStartNew}
+              apiMeta={apiMeta}
             />
           )}
         </PageContainer>

@@ -10,6 +10,7 @@ import type { DesignBrief, DesignExecutionPack, DiagnosisReport, ScreenshotAsset
 import { getRecommendedDirection } from "@/lib/utils";
 import { generateExecutionPack } from "@/lib/prompt-templates";
 import { generateMockDiagnosisReport } from "@/lib/diagnosis";
+import { DESIGN_DIRECTIONS } from "@/lib/design-directions";
 
 export class MockProvider implements AIProvider, VisionProvider {
   async generateDirections(brief: DesignBrief): Promise<Array<{ id: string; score: number }>> {
@@ -35,8 +36,9 @@ export class MockProvider implements AIProvider, VisionProvider {
   }
 
   async generateExecutionPack(brief: DesignBrief, directionId: string): Promise<DesignExecutionPack> {
-    // Use local execution pack generator
-    return generateExecutionPack(directionId, brief);
+    // Look up the direction object from constants
+    const direction = DESIGN_DIRECTIONS.find(d => d.id === directionId) || DESIGN_DIRECTIONS[0];
+    return generateExecutionPack(brief, direction);
   }
 
   async generateRefactorPrompt(diagnosisFindings: string[], targetTool: string): Promise<string> {
@@ -56,7 +58,7 @@ Generate the complete refactored code.`;
   }
 
   async diagnoseScreenshot(
-    screenshot: ScreenshotAsset,
+    screenshot: ScreenshotAsset | null,
     pageType?: string,
     painPoints?: string
   ): Promise<DiagnosisReport> {
@@ -66,8 +68,8 @@ Generate the complete refactored code.`;
     // Enhance with screenshot analysis metadata
     return {
       ...report,
-      screenshotAnalyzed: true,
-      confidence: "medium",
+      screenshotAnalyzed: !!screenshot,
+      confidence: screenshot ? "medium" : "low",
     };
   }
 }

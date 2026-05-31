@@ -214,12 +214,10 @@ export default function WorkspacePage() {
               icon={Folder}
               title="暂无项目"
               description="点击「新建项目」开始创建你的第一个设计项目，或者先从 Brief 页面创建。"
-              action={
-                <LiquidButton variant="primary" size="md" onClick={() => setShowCreateModal(true)}>
-                  <Plus className="w-4 h-4 mr-1.5" />
-                  新建项目
-                </LiquidButton>
-              }
+              action={{
+                label: "新建项目",
+                onClick: () => setShowCreateModal(true),
+              }}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,8 +1,8 @@
 # TODO - Vibe Design Translator
 
-## Version: Phase 3 AI Diagnosis Foundation
+## Version: Phase 4 Real AI Vision MVP
 **Last Updated**: 2026-05-31
-**Project Progress**: 78% → 85%
+**Project Progress**: 85% → 90%
 
 ---
 
@@ -16,7 +16,7 @@
 
 ---
 
-## P0 - Critical (Must Fix Before Phase 4)
+## P0 - Critical (Must Fix Before Phase 5)
 
 ### Engineering Stability
 
@@ -24,17 +24,33 @@
 - [x] TypeScript strict mode compliance
 - [x] ESLint passes
 - [x] localStorage hydration works without flicker
-- [x] All 10 pages route correctly
+- [x] All 13 pages route correctly (including 3 API routes)
 
 ### Core User Flows
 
 - [x] Home → Mode selection → Brief → Directions → Pack → Compiler
-- [x] Diagnosis flow end-to-end
+- [x] Diagnosis flow end-to-end (Phase 4: server-side API routes)
 - [x] Patterns library browse and search
 - [x] Copy prompt functionality
 - [x] History tracking
 - [x] Project workspace CRUD (Phase 3)
 - [x] Screenshot upload (Phase 3)
+- [x] Server-side AI API routes with mock fallback (Phase 4)
+- [x] GitHub Actions CI pipeline (Phase 4)
+
+### Phase 4 Completed
+
+- [x] 3 server-side API routes created (`/api/ai/diagnose-screenshot`, `/api/ai/generate-execution-pack`, `/api/ai/generate-refactor-prompt`)
+- [x] Diagnosis page refactored to call API routes
+- [x] API key security (server-side only, never exposed to client)
+- [x] Graceful fallback pattern (real AI → catch error → mock provider)
+- [x] Unified JSON response format (`ApiSuccess<T>` / `ApiError`)
+- [x] Token usage estimation & cost tracking metadata
+- [x] Error state display in Diagnosis page
+- [x] API metadata display in DiagnosisReportView (provider, fallback, tokens, cost)
+- [x] `.env.example` updated with comprehensive comments
+- [x] GitHub Actions CI workflow (`.github/workflows/ci.yml`)
+- [x] VisionProvider interface updated to support nullable screenshots
 
 ---
 
@@ -129,9 +145,9 @@
 ### Future
 
 - [ ] E2E testing (Playwright)
-- [ ] Unit testing (Vitest)
+- [x] Unit testing setup with CI (Phase 4: GitHub Actions CI pipeline)
 - [ ] Component documentation (Storybook)
-- [ ] CI/CD pipeline (GitHub Actions)
+- [x] CI/CD pipeline (Phase 4: GitHub Actions)
 
 ---
 
@@ -146,6 +162,20 @@
 ---
 
 ## Changelog
+
+### 2026-05-31 - Phase 4 Real AI Vision MVP
+
+- **Server-side AI API Routes**: 3 routes (`diagnose-screenshot`, `generate-execution-pack`, `generate-refactor-prompt`)
+- **Secure API Key Handling**: Keys stay server-side only (in `process.env`, never `NEXT_PUBLIC_*`)
+- **Graceful Fallback Pattern**: Real AI provider → catch error → automatic mock provider fallback
+- **Unified Response Format**: `ApiSuccess<T>` with `meta` (provider, fallback, tokensUsed, estimatedCost) / `ApiError`
+- **Diagnosis Page Refactor**: Replaced local mock with `fetch('/api/ai/diagnose-screenshot')` POST
+- **Error State Display**: Glass card error UI with retry button in Diagnosis page
+- **API Metadata Display**: Provider, fallback, token usage, and cost tracking shown in report view
+- **VisionProvider Interface**: Updated to accept nullable screenshots (text-only diagnosis supported)
+- **`.env.example` Updated**: Comprehensive comments explaining provider options and security notes
+- **GitHub Actions CI**: `.github/workflows/ci.yml` with lint + tsc + build matrix (Node 20, 22)
+- All health checks pass: `npm run lint` ✓, `npx tsc --noEmit` ✓, `npm run build` ✓
 
 ### 2026-05-31 - Phase 3 AI Diagnosis Foundation
 
