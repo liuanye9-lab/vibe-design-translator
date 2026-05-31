@@ -175,3 +175,127 @@ export function getScoreLabel(value: number): string {
   if (value >= 40) return "Needs Work";
   return "Critical";
 }
+
+// ============================================================
+// Direction Recommendation Utilities
+// ============================================================
+
+export interface RecommendationContext {
+  productCategory?: string;
+  targetUsers?: string;
+  businessPriority?: string;
+  audience?: string;
+  firstImpression?: string;
+  visualReference?: string;
+}
+
+/**
+ * Calculate direction recommendation scores based on brief context
+ */
+export function calculateDirectionScores(context: RecommendationContext): Record<string, number> {
+  const scores: Record<string, number> = {
+    "calm-professional": 0,
+    "soft-intelligent": 0,
+    "experimental-premium": 0,
+  };
+
+  // Product Category scoring
+  const categoryMapping: Record<string, string[]> = {
+    "calm-professional": ["SaaS Platform", "Dashboard", "Documentation", "E-commerce"],
+    "soft-intelligent": ["SaaS Platform", "Mobile App Landing", "Blog / Editorial", "Marketing Campaign"],
+    "experimental-premium": ["Portfolio", "Event Page", "E-commerce", "Other"],
+  };
+
+  if (context.productCategory) {
+    Object.entries(categoryMapping).forEach(([direction, categories]) => {
+      if (categories.includes(context.productCategory!)) {
+        scores[direction] += 2;
+      }
+    });
+  }
+
+  // Audience scoring
+  const audienceMapping: Record<string, string[]> = {
+    "calm-professional": ["enterprise", "real-users", "investors"],
+    "soft-intelligent": ["developers", "real-users", "interviewers"],
+    "experimental-premium": ["investors", "interviewers"],
+  };
+
+  if (context.audience) {
+    Object.entries(audienceMapping).forEach(([direction, audiences]) => {
+      if (audiences.includes(context.audience!)) {
+        scores[direction] += 3;
+      }
+    });
+  }
+
+  // Business Priority scoring
+  if (context.businessPriority) {
+    if (context.businessPriority.includes("convert")) {
+      scores["calm-professional"] += 2;
+      scores["soft-intelligent"] += 1;
+    }
+    if (context.businessPriority.includes("trust")) {
+      scores["calm-professional"] += 3;
+      scores["soft-intelligent"] += 1;
+    }
+    if (context.businessPriority.includes("impress")) {
+      scores["experimental-premium"] += 3;
+      scores["soft-intelligent"] += 1;
+    }
+  }
+
+  // First Impression scoring
+  if (context.firstImpression) {
+    if (context.firstImpression.includes("professional")) {
+      scores["calm-professional"] += 3;
+    }
+    if (context.firstImpression.includes("calm-premium")) {
+      scores["experimental-premium"] += 3;
+      scores["calm-professional"] += 1;
+    }
+    if (context.firstImpression.includes("friendly")) {
+      scores["soft-intelligent"] += 2;
+    }
+    if (context.firstImpression.includes("futuristic")) {
+      scores["soft-intelligent"] += 2;
+      scores["experimental-premium"] += 1;
+    }
+    if (context.firstImpression.includes("developer")) {
+      scores["soft-intelligent"] += 2;
+      scores["calm-professional"] += 1;
+    }
+  }
+
+  // Visual Reference scoring
+  if (context.visualReference) {
+    if (context.visualReference.includes("apple")) {
+      scores["calm-professional"] += 2;
+    }
+    if (context.visualReference.includes("linear") || context.visualReference.includes("vercel")) {
+      scores["soft-intelligent"] += 2;
+    }
+    if (context.visualReference.includes("stripe")) {
+      scores["calm-professional"] += 1;
+      scores["soft-intelligent"] += 1;
+    }
+    if (context.visualReference.includes("original")) {
+      scores["experimental-premium"] += 2;
+    }
+  }
+
+  return scores;
+}
+
+/**
+ * Get recommended direction based on context
+ */
+export function getRecommendedDirection(context: RecommendationContext): string | null {
+  const scores = calculateDirectionScores(context);
+  const maxScore = Math.max(...Object.values(scores));
+  
+  if (maxScore === 0) return null;
+  
+  const winner = Object.entries(scores).find(([_, score]) => score === maxScore);
+  return winner ? winner[0] : null;
+}

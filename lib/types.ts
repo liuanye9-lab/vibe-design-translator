@@ -31,17 +31,28 @@ export type ContentDensity =
 // Design Brief
 // ============================================================
 
+// Enhanced brief with design decision questions
 export interface DesignBrief {
+  // Basic Info
   productName: string;
   productCategory: string;
   targetUsers: string;
   pageGoal: string;
+  
+  // Legacy fields
   desiredFeeling: string[];
   avoidedFeeling: string[];
   mainCTA: string;
   visualIntensity: VisualIntensity;
   contentDensity: ContentDensity;
   outputTool: ToolType;
+  
+  // Enhanced Design Decision Fields
+  firstImpression?: string;
+  businessPriority?: string;
+  visualReference?: string;
+  avoidedAISmell?: string[];
+  audience?: string;
 }
 
 export interface DesignBriefInput {
@@ -55,6 +66,11 @@ export interface DesignBriefInput {
   visualIntensity?: VisualIntensity;
   contentDensity?: ContentDensity;
   outputTool?: ToolType;
+  firstImpression?: string;
+  businessPriority?: string;
+  visualReference?: string;
+  avoidedAISmell?: string[];
+  audience?: string;
 }
 
 // ============================================================
@@ -90,6 +106,18 @@ export interface DesignDirection {
   layoutAdvice: string[];
   interactionAdvice: string[];
   risks: string;
+  // Enhanced fields
+  whyWorksFor?: string[];
+  riskIfOverused?: string;
+  bestPageSections?: string[];
+  notSuitableFor?: string[];
+  recommendedFor?: string[];
+}
+
+export interface DirectionRecommendation {
+  directionId: string;
+  reason: string;
+  confidence: "high" | "medium" | "low";
 }
 
 // ============================================================
@@ -97,6 +125,7 @@ export interface DesignDirection {
 // ============================================================
 
 export interface DesignExecutionPack {
+  // Basic structure
   strategy: string[];
   pageStructure: string[];
   visualSystem: string[];
@@ -104,6 +133,17 @@ export interface DesignExecutionPack {
   acceptanceCriteria: string[];
   antiAILookChecklist: string[];
   prompts: Record<ToolType, string>;
+  
+  // Enhanced structure
+  contentTone?: string[];
+  componentRules?: string[];
+  responsiveRules?: string[];
+  
+  // Metadata
+  productName?: string;
+  productCategory?: string;
+  selectedDirection?: string;
+  generatedAt?: string;
 }
 
 // ============================================================
@@ -120,19 +160,43 @@ export interface DiagnosisScores {
   conversionClarity: number;
 }
 
+export interface DiagnosisFinding {
+  category: string;
+  issue: string;
+  severity: "critical" | "warning" | "info";
+}
+
+export interface DiagnosisFix {
+  category: string;
+  fix: string;
+  priority: "high" | "medium" | "low";
+}
+
 export interface DiagnosisReport {
   overallScore: number;
   scores: DiagnosisScores;
   findings: string[];
   fixes: string[];
   refactorPrompts: Record<ToolType, string>;
+  
+  // Enhanced fields
+  detailedFindings?: DiagnosisFinding[];
+  repairStrategy?: {
+    layout?: string[];
+    color?: string[];
+    typography?: string[];
+    interaction?: string[];
+    conversion?: string[];
+  };
+  pageType?: string;
+  primaryPainPoint?: string;
 }
 
 export interface DiagnosisInput {
   pageType: string;
   pageDescription: string;
   primaryPainPoint: string;
-  screenshotUrl?: string; // Placeholder for future screenshot upload
+  screenshotUrl?: string;
 }
 
 // ============================================================
@@ -143,7 +207,8 @@ export type HistoryEventType =
   | "brief_created"
   | "direction_selected"
   | "prompt_copied"
-  | "diagnosis_performed";
+  | "diagnosis_performed"
+  | "pack_exported";
 
 export interface HistoryItem {
   id: string;

@@ -10,13 +10,14 @@ import { GlassCard, GlassCardContent } from "@/components/ui/glass-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { cn, getRelativeTime } from "@/lib/utils";
-import { History, Trash2, Lightbulb, Palette, Copy, Stethoscope } from "lucide-react";
+import { History, Trash2, Lightbulb, Palette, Copy, Stethoscope, FileDown } from "lucide-react";
 
 const historyTypeIcons = {
   brief_created: Lightbulb,
   direction_selected: Palette,
   prompt_copied: Copy,
   diagnosis_performed: Stethoscope,
+  pack_exported: FileDown,
 };
 
 const historyTypeLabels = {
@@ -24,6 +25,7 @@ const historyTypeLabels = {
   direction_selected: "Direction Selected",
   prompt_copied: "Prompt Copied",
   diagnosis_performed: "Diagnosis Performed",
+  pack_exported: "Pack Exported",
 };
 
 const historyTypeColors = {
@@ -31,6 +33,7 @@ const historyTypeColors = {
   direction_selected: "text-blue-500",
   prompt_copied: "text-green-500",
   diagnosis_performed: "text-purple-500",
+  pack_exported: "text-cyan-500",
 };
 
 interface HistoryPanelProps {

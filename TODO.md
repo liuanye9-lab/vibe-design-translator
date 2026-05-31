@@ -1,0 +1,204 @@
+# TODO - Vibe Design Translator
+
+## Version: Phase 2 Preparation
+**Last Updated**: 2026-05-31
+**Project Progress**: 68% → 78%
+
+---
+
+## Priority Legend
+
+| Priority | Description |
+|----------|-------------|
+| **P0** | Must fix - blocks build, core flow broken |
+| **P1** | Should fix - affects UX significantly |
+| **P2** | Nice to have - improvements |
+
+---
+
+## P0 - Critical (Must Fix Before Phase 2)
+
+### Engineering Stability
+
+- [x] Build passes without errors
+- [x] TypeScript strict mode compliance
+- [x] ESLint passes
+- [x] localStorage hydration works without flicker
+- [x] All 9 pages route correctly
+
+### Core User Flows
+
+- [x] Home → Mode selection → Brief → Directions → Pack → Compiler
+- [x] Diagnosis flow end-to-end
+- [x] Patterns library browse and search
+- [x] Copy prompt functionality
+- [x] History tracking
+
+---
+
+## P1 - Important (Next Sprint)
+
+### AI API Integration
+
+- [ ] OpenAI API connector for brief interpretation
+- [ ] Claude API connector for design analysis
+- [ ] Gemini API connector for vision diagnosis
+- [ ] API key management UI
+- [ ] Rate limiting and retry logic
+- [ ] Cost estimation display
+
+### Project Workspace
+
+- [ ] Save/load projects
+- [ ] Project list view
+- [ ] Project rename and delete
+- [ ] Project export (JSON/Markdown)
+- [ ] Project sharing link
+
+### Vision Diagnosis
+
+- [ ] Screenshot upload component
+- [ ] Image preview and crop
+- [ ] Vision API integration (Claude/Gemini)
+- [ ] Before/after comparison view
+- [ ] Batch diagnosis for multiple pages
+
+### User Authentication
+
+- [ ] NextAuth.js setup
+- [ ] Google OAuth provider
+- [ ] GitHub OAuth provider
+- [ ] User profile page
+- [ ] Email/password fallback
+
+---
+
+## P2 - Nice to Have (Future Phases)
+
+### Billing & Subscription
+
+- [ ] Stripe integration
+- [ ] Subscription tiers (Free/Pro/Team)
+- [ ] Usage tracking (prompt exports, diagnoses)
+- [ ] Billing dashboard
+- [ ] Invoice history
+
+### Team Workspace
+
+- [ ] Team creation and management
+- [ ] Team member invitations
+- [ ] Shared design memory
+- [ ] Team prompt templates
+- [ ] Activity feed
+
+### Brand Memory
+
+- [ ] Brand color palette editor
+- [ ] Brand typography rules
+- [ ] Logo upload and guidelines
+- [ ] Brand kit export
+- [ ] Brand consistency checker
+
+### Browser Extension
+
+- [ ] Chrome extension scaffold
+- [ ] Page analysis from extension
+- [ ] Quick prompt generation
+- [ ] Extension popup UI
+
+### API & MCP
+
+- [ ] REST API endpoints
+- [ ] API key management
+- [ ] MCP server setup
+- [ ] API documentation
+- [ ] Rate limiting
+
+### Advanced Features
+
+- [ ] A/B design comparison
+- [ ] Design system import (Figma tokens)
+- [ ] Multi-language support (EN/ZH/JP)
+- [ ] Dark mode toggle
+- [ ] Keyboard shortcuts
+
+---
+
+## Technical Debt
+
+### Current
+
+- [ ] Mobile responsive menu (hamburger → full menu)
+- [ ] Performance optimization (lazy load components)
+- [ ] Error boundary implementation
+- [ ] Loading skeleton states
+
+### Future
+
+- [ ] E2E testing (Playwright)
+- [ ] Unit testing (Vitest)
+- [ ] Component documentation (Storybook)
+- [ ] CI/CD pipeline (GitHub Actions)
+
+---
+
+## Known Issues
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| JSX `span` lowercase in settings | Fixed | Was causing warning |
+| Diagnosis refactor prompt type | Fixed | Properly typed |
+| ESLint config missing | Fixed | Created .eslintrc.json |
+
+---
+
+## Changelog
+
+### 2026-05-31 - Phase 2 Preparation
+
+- Enhanced brief form with design decision questions
+- Added direction recommendation engine
+- Improved Execution Pack with 10 sections
+- Added Markdown export functionality
+- Enhanced diagnosis with repair strategy
+- Added detailed findings with severity levels
+- Created .eslintrc.json for linting
+- Fixed TypeScript type issues
+- Build passes with 12 pages
+
+### 2026-05-30 - Engineering MVP
+
+- Initial Next.js App Router setup
+- TypeScript strict mode
+- Zustand + localStorage persistence
+- 9 pages with complete flows
+- 26 components (layout/ui/product)
+- 7 lib files (types, constants, utilities)
+- 12 original design patterns
+- 3 design directions
+- 4 tool-specific prompt generators
+- Mock diagnosis system
+
+---
+
+## How to Use This Document
+
+1. **Weekly Review**: Check P0 and P1 items, update status
+2. **Sprint Planning**: Pick top 5-7 items from P1 for next sprint
+3. **Progress Tracking**: Update percentage as items are completed
+4. **Handoff**: This document shows what's done and what's next
+
+---
+
+## Contributing
+
+When adding features:
+1. Update relevant TODO items
+2. Add test coverage
+3. Update README if user-facing
+4. Update changelog
+
+---
+
+**Last reviewed**: 2026-05-31
+**Next review**: Weekly

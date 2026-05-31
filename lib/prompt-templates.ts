@@ -29,7 +29,7 @@ export function generateExecutionPack(
   brief: DesignBrief,
   direction: DesignDirection
 ): DesignExecutionPack {
-  return {
+  const pack: DesignExecutionPack = {
     strategy: generateStrategy(brief, direction),
     pageStructure: generatePageStructure(brief, direction),
     visualSystem: generateVisualSystem(brief, direction),
@@ -42,7 +42,18 @@ export function generateExecutionPack(
       gemini: generateGeminiPrompt(brief, direction),
       workbuddy: generateWorkbuddyPrompt(brief, direction),
     },
+    // Enhanced fields
+    contentTone: generateContentTone(brief, direction),
+    componentRules: generateComponentRules(brief, direction),
+    responsiveRules: generateResponsiveRules(brief, direction),
+    // Metadata
+    productName: brief.productName,
+    productCategory: brief.productCategory,
+    selectedDirection: direction.name,
+    generatedAt: new Date().toISOString(),
   };
+
+  return pack;
 }
 
 // ============================================================
@@ -61,6 +72,10 @@ function generateStrategy(
     `Create clear user journey from landing to primary CTA ("${brief.mainCTA}")`,
     `Avoid generic AI-generated patterns; embrace ${direction.psychologicalEffect.toLowerCase()} feel`,
     `Design mobile-first with progressive enhancement for larger screens`,
+    // Enhanced strategy
+    `Use ${brief.firstImpression?.replace(/-/g, " ") || "professional"} as the emotional anchor`,
+    `Prioritize ${brief.businessPriority?.replace(/-/g, " ") || "conversion"} as the primary business goal`,
+    `Target ${brief.audience?.replace(/-/g, " ") || "general users"} with tailored messaging`,
   ];
 }
 
@@ -160,6 +175,106 @@ function generateInteractionSystem(
 }
 
 // ============================================================
+// Content Tone Generation
+// ============================================================
+
+function generateContentTone(
+  _brief: DesignBrief,
+  direction: DesignDirection
+): string[] {
+  const toneBase = [
+    "Use specific, concrete language over generic buzzwords",
+    "Write for scannability: short paragraphs, clear headings",
+    "Lead with value proposition, support with evidence",
+  ];
+
+  if (direction.id === "calm-professional") {
+    return [
+      ...toneBase,
+      "Professional and authoritative tone",
+      "Data-driven claims with specific metrics",
+      "Clear, direct communication without unnecessary flair",
+    ];
+  }
+
+  if (direction.id === "soft-intelligent") {
+    return [
+      ...toneBase,
+      "Friendly but sophisticated voice",
+      "Explain complex concepts in accessible language",
+      "Balancing technical credibility with human warmth",
+    ];
+  }
+
+  return [
+    ...toneBase,
+    "Confident and distinctive brand voice",
+    "Editorial quality in all copywriting",
+    "Memorable phrases that stick with users",
+  ];
+}
+
+// ============================================================
+// Component Rules Generation
+// ============================================================
+
+function generateComponentRules(
+  brief: DesignBrief,
+  direction: DesignDirection
+): string[] {
+  const baseRules = [
+    "All buttons must have distinct default, hover, active, disabled states",
+    "Cards should have consistent internal padding (16-24px)",
+    "Forms need clear labels, validation states, and error messages",
+    "Icons: consistent size, style, and stroke width",
+  ];
+
+  if (direction.id === "calm-professional") {
+    return [
+      ...baseRules,
+      "Keep component styling uniform across the page",
+      "Use subtle borders instead of heavy shadows",
+      "Prioritize readability over visual decoration",
+    ];
+  }
+
+  if (direction.id === "soft-intelligent") {
+    return [
+      ...baseRules,
+      "Allow subtle elevation variation between components",
+      "Use soft corners (rounded-2xl) for interactive elements",
+      "Consider subtle gradient backgrounds on key sections",
+    ];
+  }
+
+  return [
+    ...baseRules,
+    "Allow creative variation in component styling",
+    "Consider custom illustrations or decorative elements",
+    "Typography can break grid for visual impact",
+  ];
+}
+
+// ============================================================
+// Responsive Rules Generation
+// ============================================================
+
+function generateResponsiveRules(
+  brief: DesignBrief,
+  _direction: DesignDirection
+): string[] {
+  return [
+    "Mobile-first approach: design for 375px first, enhance for larger",
+    `Content density: ${brief.contentDensity === "light" ? "Reduce content on mobile, focus on single CTA" : brief.contentDensity === "dense" ? "Stack content vertically, maintain information richness" : "Balance content visibility with readability"}`,
+    "Touch targets minimum 44x44px on mobile",
+    "Breakpoints: 640px (sm), 768px (md), 1024px (lg), 1280px (xl)",
+    "Typography scales down 10-15% on mobile",
+    "Navigation: hamburger menu on mobile, full nav on desktop",
+    "Images: responsive with appropriate srcset for retina displays",
+  ];
+}
+
+// ============================================================
 // Acceptance Criteria Generation
 // ============================================================
 
@@ -201,6 +316,70 @@ export function generateAntiAILookChecklist(): string[] {
     "Do buttons all have the same hover effect? → Vary interaction patterns",
     "Are shadows all the same? → Create elevation hierarchy",
   ];
+}
+
+// ============================================================
+// Markdown Export
+// ============================================================
+
+/**
+ * Generate Markdown export of the execution pack
+ */
+export function generateMarkdownExport(pack: DesignExecutionPack, brief: DesignBrief): string {
+  return `# Design Execution Pack
+
+## Product Context
+
+- **Product**: ${brief.productName}
+- **Category**: ${brief.productCategory}
+- **Target Users**: ${brief.targetUsers}
+- **Page Goal**: ${brief.pageGoal}
+- **Primary CTA**: ${brief.mainCTA}
+
+## Selected Direction
+
+**${pack.selectedDirection}**
+
+## Design Strategy
+
+${pack.strategy.map((s) => `- ${s}`).join("\n")}
+
+## Page Structure
+
+${pack.pageStructure.map((s) => `- ${s}`).join("\n")}
+
+## Visual System
+
+${pack.visualSystem.map((s) => `- ${s}`).join("\n")}
+
+## Interaction System
+
+${pack.interactionSystem.map((s) => `- ${s}`).join("\n")}
+
+## Content Tone
+
+${pack.contentTone?.map((t) => `- ${t}`).join("\n") || ""}
+
+## Component Rules
+
+${pack.componentRules?.map((r) => `- ${r}`).join("\n") || ""}
+
+## Responsive Rules
+
+${pack.responsiveRules?.map((r) => `- ${r}`).join("\n") || ""}
+
+## Acceptance Criteria
+
+${pack.acceptanceCriteria.map((c) => `- ${c}`).join("\n")}
+
+## Anti-AI-Look Checklist
+
+${pack.antiAILookChecklist.map((c) => `- ${c}`).join("\n")}
+
+---
+
+*Generated by Vibe Design Translator on ${new Date().toLocaleDateString()}*
+`;
 }
 
 // ============================================================

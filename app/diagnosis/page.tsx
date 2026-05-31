@@ -39,7 +39,11 @@ export default function DiagnosisPage() {
     // Simulate AI analysis delay
     await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 500));
 
-    const mockReport = generateMockDiagnosisReport();
+    const mockReport = generateMockDiagnosisReport(
+      data.pageType,
+      data.pageDescription,
+      data.primaryPainPoint
+    );
     setReport(mockReport);
     setDiagnosisReport(mockReport);
     addHistory({ type: "diagnosis_performed", data });

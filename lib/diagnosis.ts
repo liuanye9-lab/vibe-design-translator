@@ -2,7 +2,7 @@
 // Vibe Design Translator - Diagnosis Mock Logic
 // ============================================================
 
-import { DiagnosisReport, DiagnosisScores, ToolType } from "./types";
+import { DiagnosisReport, DiagnosisScores, ToolType, DiagnosisFinding, DiagnosisFix } from "./types";
 import { generateAntiAILookChecklist } from "./prompt-templates";
 
 // ============================================================
@@ -10,19 +10,15 @@ import { generateAntiAILookChecklist } from "./prompt-templates";
 // ============================================================
 
 /**
- * Generate a mock diagnosis report with realistic scores and findings
+ * Generate a mock diagnosis report based on user input
  */
-export function generateMockDiagnosisReport(): DiagnosisReport {
-  // Generate random but realistic scores
-  const scores: DiagnosisScores = {
-    aiTemplateFeeling: Math.floor(Math.random() * 30) + 40, // 40-70
-    visualHierarchy: Math.floor(Math.random() * 35) + 45, // 45-80
-    colorControl: Math.floor(Math.random() * 30) + 50, // 50-80
-    typographySystem: Math.floor(Math.random() * 40) + 45, // 45-85
-    spacingSystem: Math.floor(Math.random() * 25) + 55, // 55-80
-    interactionRestraint: Math.floor(Math.random() * 35) + 40, // 40-75
-    conversionClarity: Math.floor(Math.random() * 30) + 50, // 50-80
-  };
+export function generateMockDiagnosisReport(
+  pageType: string,
+  _pageDescription: string,
+  primaryPainPoint: string
+): DiagnosisReport {
+  // Generate scores based on pain point
+  const scores = generateScoresBasedOnPainPoint(primaryPainPoint);
 
   // Calculate overall score (weighted average)
   const overallScore = Math.round(
@@ -35,64 +31,255 @@ export function generateMockDiagnosisReport(): DiagnosisReport {
     scores.conversionClarity * 0.1
   );
 
-  // Generate findings based on low scores
+  // Generate findings and fixes based on scores
+  const { findings, fixes, detailedFindings, repairStrategy } = generateFindingsAndFixes(scores, primaryPainPoint);
+
+  const report: DiagnosisReport = {
+    overallScore,
+    scores,
+    findings,
+    fixes,
+    refactorPrompts: generateRefactorPrompts({ 
+      overallScore, 
+      scores, 
+      findings, 
+      fixes,
+      pageType,
+      primaryPainPoint,
+    }),
+    detailedFindings,
+    repairStrategy,
+    pageType,
+    primaryPainPoint,
+  };
+
+  return report;
+}
+
+/**
+ * Generate scores based on the primary pain point
+ */
+function generateScoresBasedOnPainPoint(painPoint: string): DiagnosisScores {
+  // Base scores
+  const baseScores = {
+    aiTemplateFeeling: 55,
+    visualHierarchy: 60,
+    colorControl: 62,
+    typographySystem: 65,
+    spacingSystem: 68,
+    interactionRestraint: 58,
+    conversionClarity: 60,
+  };
+
+  // Adjust scores based on pain point
+  switch (painPoint) {
+    case "Looks like AI-generated template":
+      return {
+        ...baseScores,
+        aiTemplateFeeling: Math.floor(Math.random() * 15) + 35,
+        visualHierarchy: Math.floor(Math.random() * 20) + 40,
+        colorControl: Math.floor(Math.random() * 20) + 45,
+      };
+    case "No clear visual hierarchy":
+      return {
+        ...baseScores,
+        visualHierarchy: Math.floor(Math.random() * 20) + 35,
+        typographySystem: Math.floor(Math.random() * 15) + 50,
+      };
+    case "Colors feel random or messy":
+      return {
+        ...baseScores,
+        colorControl: Math.floor(Math.random() * 20) + 35,
+        visualHierarchy: Math.floor(Math.random() * 15) + 50,
+      };
+    case "Typography inconsistent":
+      return {
+        ...baseScores,
+        typographySystem: Math.floor(Math.random() * 20) + 35,
+        spacingSystem: Math.floor(Math.random() * 15) + 50,
+      };
+    case "Spacing feels off":
+      return {
+        ...baseScores,
+        spacingSystem: Math.floor(Math.random() * 20) + 35,
+        visualHierarchy: Math.floor(Math.random() * 15) + 50,
+      };
+    case "Too many animations":
+      return {
+        ...baseScores,
+        interactionRestraint: Math.floor(Math.random() * 20) + 30,
+      };
+    case "Unclear CTA or conversion path":
+      return {
+        ...baseScores,
+        conversionClarity: Math.floor(Math.random() * 20) + 35,
+        visualHierarchy: Math.floor(Math.random() * 15) + 50,
+      };
+    case "Missing brand personality":
+      return {
+        ...baseScores,
+        aiTemplateFeeling: Math.floor(Math.random() * 15) + 40,
+        colorControl: Math.floor(Math.random() * 15) + 50,
+        typographySystem: Math.floor(Math.random() * 15) + 50,
+      };
+    default:
+      return {
+        aiTemplateFeeling: Math.floor(Math.random() * 30) + 40,
+        visualHierarchy: Math.floor(Math.random() * 35) + 45,
+        colorControl: Math.floor(Math.random() * 30) + 50,
+        typographySystem: Math.floor(Math.random() * 40) + 45,
+        spacingSystem: Math.floor(Math.random() * 25) + 55,
+        interactionRestraint: Math.floor(Math.random() * 35) + 40,
+        conversionClarity: Math.floor(Math.random() * 30) + 50,
+      };
+  }
+}
+
+/**
+ * Generate findings, fixes, and detailed repair strategy
+ */
+function generateFindingsAndFixes(
+  scores: DiagnosisScores,
+  primaryPainPoint: string
+): {
+  findings: string[];
+  fixes: string[];
+  detailedFindings: DiagnosisFinding[];
+  repairStrategy: {
+    layout: string[];
+    color: string[];
+    typography: string[];
+    interaction: string[];
+    conversion: string[];
+  };
+} {
   const findings: string[] = [];
   const fixes: string[] = [];
+  const detailedFindings: DiagnosisFinding[] = [];
+  const repairStrategy = {
+    layout: [] as string[],
+    color: [] as string[],
+    typography: [] as string[],
+    interaction: [] as string[],
+    conversion: [] as string[],
+  };
 
-  if (scores.aiTemplateFeeling < 55) {
+  // AI Template Feeling
+  if (scores.aiTemplateFeeling < 60) {
     findings.push("Page exhibits multiple signs of AI-generated template aesthetics");
     findings.push("Colors appear to be from a generic palette with no brand consideration");
     findings.push("Layout follows standard SaaS template patterns too closely");
     fixes.push("Introduce custom color palette with brand-specific variations");
     fixes.push("Add unique layout elements that break template patterns");
     fixes.push("Consider asymmetric layouts or unconventional section ordering");
+    
+    detailedFindings.push({
+      category: "AI Template",
+      issue: "Generic SaaS aesthetic detected",
+      severity: "critical",
+    });
+    
+    repairStrategy.color.push("Create brand-specific color palette with unique variations");
+    repairStrategy.layout.push("Break template patterns with custom section ordering");
   }
 
-  if (scores.visualHierarchy < 60) {
+  // Visual Hierarchy
+  if (scores.visualHierarchy < 65) {
     findings.push("Visual hierarchy is unclear—competing for attention everywhere");
     findings.push("Primary CTA lacks sufficient visual weight to stand out");
     findings.push("Section headings don't create clear reading order");
     fixes.push("Increase size contrast between heading levels (3:1 minimum ratio)");
     fixes.push("Make primary CTA visually dominant with size, color, and position");
     fixes.push("Use whitespace to separate content groups into clear chapters");
+    
+    detailedFindings.push({
+      category: "Visual Hierarchy",
+      issue: "Competing elements and unclear CTAs",
+      severity: "critical",
+    });
+    
+    repairStrategy.layout.push("Establish clear 3:1 heading ratio");
+    repairStrategy.conversion.push("Dominant CTA placement with visual weight");
   }
 
-  if (scores.colorControl < 60) {
+  // Color Control
+  if (scores.colorControl < 65) {
     findings.push("Color palette appears randomly assembled without system thinking");
     findings.push("Multiple accent colors create visual noise and confusion");
     findings.push("Background colors lack intentional contrast relationships");
     fixes.push("Reduce to 1-2 accent colors maximum, use for interactive elements only");
     fixes.push("Create a color scale (5-7 shades) for each hue");
     fixes.push("Test color combinations for harmony using systematic approach");
+    
+    detailedFindings.push({
+      category: "Color System",
+      issue: "Random palette without brand identity",
+      severity: "warning",
+    });
+    
+    repairStrategy.color.push("Limit to 1-2 accent colors for interactions");
+    repairStrategy.color.push("Build 5-7 shade color scale per hue");
   }
 
-  if (scores.typographySystem < 65) {
+  // Typography System
+  if (scores.typographySystem < 70) {
     findings.push("Typography lacks consistent scale or rhythm");
     findings.push("Font weights appear randomly mixed without hierarchy purpose");
     findings.push("Line-height inconsistency affects readability");
     fixes.push("Define explicit type scale with 3-4 levels maximum");
     fixes.push("Establish consistent weight usage (e.g., headings: semibold, body: regular)");
     fixes.push("Set body line-height to 1.5-1.7 for optimal readability");
+    
+    detailedFindings.push({
+      category: "Typography",
+      issue: "Inconsistent type scale and weight usage",
+      severity: "warning",
+    });
+    
+    repairStrategy.typography.push("Define 3-4 level type scale");
+    repairStrategy.typography.push("Consistent weight hierarchy");
+    repairStrategy.typography.push("1.5-1.7 line-height for body");
   }
 
-  if (scores.spacingSystem < 60) {
+  // Spacing System
+  if (scores.spacingSystem < 65) {
     findings.push("Spacing is uniform throughout, lacking intentional rhythm");
     findings.push("Section padding doesn't reflect content importance");
     findings.push("Component margins inconsistent");
     fixes.push("Create spacing scale (8px base unit)");
     fixes.push("Use larger padding for hero/sections, smaller for components");
     fixes.push("Vary spacing to create visual interest while maintaining consistency");
+    
+    detailedFindings.push({
+      category: "Spacing",
+      issue: "Uniform spacing without rhythm",
+      severity: "warning",
+    });
+    
+    repairStrategy.layout.push("8px-based spacing scale");
+    repairStrategy.layout.push("Hero sections: larger padding");
   }
 
-  if (scores.interactionRestraint < 55) {
+  // Interaction Restraint
+  if (scores.interactionRestraint < 60) {
     findings.push("Excessive animations competing for attention");
     findings.push("Hover effects too dramatic, causing visual instability");
     findings.push("Scroll animations feel gratuitous rather than informative");
     fixes.push("Reduce animation duration to 150-300ms maximum");
     fixes.push("Use subtle transforms (opacity, translateY) over scale/rotate");
     fixes.push("Respect prefers-reduced-motion for accessibility");
+    
+    detailedFindings.push({
+      category: "Interactions",
+      issue: "Excessive and distracting animations",
+      severity: "warning",
+    });
+    
+    repairStrategy.interaction.push("150-300ms animation maximum");
+    repairStrategy.interaction.push("Opacity/translateY over scale/rotate");
   }
 
+  // Conversion Clarity
   if (scores.conversionClarity < 65) {
     findings.push("Primary CTA buried or insufficiently prominent");
     findings.push("Trust indicators missing or in wrong positions");
@@ -100,20 +287,22 @@ export function generateMockDiagnosisReport(): DiagnosisReport {
     fixes.push("Ensure CTA appears above fold with high visual weight");
     fixes.push("Add trust signals (logos, testimonials, guarantees) near CTAs");
     fixes.push("Create clear visual path from value prop to conversion");
-  }
-
-  // Add general findings if overall score is low
-  if (overallScore < 55) {
-    findings.push("Page needs comprehensive redesign to avoid generic AI look");
-    findings.push("Brand personality is largely absent from current implementation");
+    
+    detailedFindings.push({
+      category: "Conversion",
+      issue: "Unclear CTA and conversion path",
+      severity: "critical",
+    });
+    
+    repairStrategy.conversion.push("Above-fold CTA with visual dominance");
+    repairStrategy.conversion.push("Trust signals adjacent to CTAs");
   }
 
   return {
-    overallScore,
-    scores,
-    findings: Array.from(new Set(findings)), // Remove duplicates
-    fixes: Array.from(new Set(fixes)), // Remove duplicates
-    refactorPrompts: generateRefactorPrompts({ overallScore, scores, findings, fixes, refactorPrompts: {} } as DiagnosisReport),
+    findings: Array.from(new Set(findings)),
+    fixes: Array.from(new Set(fixes)),
+    detailedFindings,
+    repairStrategy,
   };
 }
 
@@ -125,25 +314,38 @@ export function generateMockDiagnosisReport(): DiagnosisReport {
  * Generate tool-specific refactor prompts based on diagnosis
  */
 export function generateRefactorPrompts(
-  report: DiagnosisReport
+  report: Partial<DiagnosisReport>
 ): Record<ToolType, string> {
-  const scoreSummary = `Overall Score: ${report.overallScore}/100
-AI Template Feeling: ${report.scores.aiTemplateFeeling}/100
-Visual Hierarchy: ${report.scores.visualHierarchy}/100
-Color Control: ${report.scores.colorControl}/100
-Typography System: ${report.scores.typographySystem}/100
-Spacing System: ${report.scores.spacingSystem}/100
-Interaction Restraint: ${report.scores.interactionRestraint}/100
-Conversion Clarity: ${report.scores.conversionClarity}/100`;
+  const overallScore = report.overallScore || 50;
+  const scores = report.scores || {
+    aiTemplateFeeling: 50,
+    visualHierarchy: 50,
+    colorControl: 50,
+    typographySystem: 50,
+    spacingSystem: 50,
+    interactionRestraint: 50,
+    conversionClarity: 50,
+  };
+  const findings = report.findings || [];
+  const fixes = report.fixes || [];
+
+  const scoreSummary = `Overall Score: ${overallScore}/100
+AI Template Feeling: ${scores.aiTemplateFeeling}/100
+Visual Hierarchy: ${scores.visualHierarchy}/100
+Color Control: ${scores.colorControl}/100
+Typography System: ${scores.typographySystem}/100
+Spacing System: ${scores.spacingSystem}/100
+Interaction Restraint: ${scores.interactionRestraint}/100
+Conversion Clarity: ${scores.conversionClarity}/100`;
 
   return {
-    codex: `You are refactoring a landing page that scored ${report.overallScore}/100 on design quality.
+    codex: `You are refactoring a landing page that scored ${overallScore}/100 on design quality.
 
 ## Current Issues
-${report.findings.map((f) => `- ${f}`).join("\n")}
+${findings.map((f) => `- ${f}`).join("\n")}
 
 ## Required Fixes
-${report.fixes.map((f) => `- ${f}`).join("\n")}
+${fixes.map((f) => `- ${f}`).join("\n")}
 
 ## Score Analysis
 ${scoreSummary}
@@ -170,13 +372,13 @@ ${generateAntiAILookChecklist().map((r) => `- ${r}`).join("\n")}
     "claude-code": `# Landing Page Refactor Task
 
 ## Context
-Current page scored ${report.overallScore}/100. Multiple design issues identified that make it look like a generic AI-generated template.
+Current page scored ${overallScore}/100. Multiple design issues identified that make it look like a generic AI-generated template.
 
 ## Issues Found
-${report.findings.map((f) => `### ${f}`).join("\n\n")}
+${findings.map((f) => `### ${f}`).join("\n\n")}
 
 ## Required Changes
-${report.fixes.map((f) => `### ${f}`).join("\n\n")}
+${fixes.map((f) => `### ${f}`).join("\n\n")}
 
 ## Current Scores
 ${scoreSummary}
@@ -225,13 +427,13 @@ ${generateAntiAILookChecklist().map((r) => `- [ ] ${r}`).join("\n")}
 
     gemini: `# Landing Page Redesign
 
-**Problem**: Current page looks AI-generated and scores ${report.overallScore}/100.
+**Problem**: Current page looks AI-generated and scores ${overallScore}/100.
 
 **Key Issues**:
-${report.findings.map((f, i) => `${i + 1}. ${f}`).join("\n")}
+${findings.map((f, i) => `${i + 1}. ${f}`).join("\n")}
 
 **Required Improvements**:
-${report.fixes.map((f, i) => `${i + 1}. ${f}`).join("\n")}
+${fixes.map((f, i) => `${i + 1}. ${f}`).join("\n")}
 
 ---
 
@@ -285,11 +487,11 @@ ${generateAntiAILookChecklist().map((r) => `- ${r}`).join("\n")}
 
     workbuddy: `# 页面重构任务
 
-## 当前问题（得分：${report.overallScore}/100）
-${report.findings.map((f) => `- ${f}`).join("\n")}
+## 当前问题（得分：${overallScore}/100）
+${findings.map((f) => `- ${f}`).join("\n")}
 
 ## 需要修复
-${report.fixes.map((f) => `- ${f}`).join("\n")}
+${fixes.map((f) => `- ${f}`).join("\n")}
 
 ## 设计评分
 ${scoreSummary}
