@@ -12,6 +12,12 @@
 
 **Vibe Design Translator** is a design decision and diagnosis SaaS for AI coding users. It translates vague visual taste into executable frontend prompts for tools like Codex, Claude Code, Gemini, and WorkBuddy.
 
+1. **I have an idea** → User fills design brief → Select design direction → Generate execution pack → Copy tool-specific prompt → Implement in AI coding tool
+2. **I have no direction** → User provides lightweight brief → Get 3 curated design directions → Choose one → Generate execution pack → Copy prompt
+3. **Diagnose my page** → User describes current page pain points → Upload screenshot → Get diagnosis report → Get refactor prompt → Fix issues
+
+**Current Status:** Phase 3 — AI Diagnosis Foundation ✅
+
 It helps users avoid generic AI-generated UI by producing:
 - Structured design directions
 - Execution packs with actionable guidelines
@@ -121,34 +127,59 @@ npm run lint
 
 ```
 app/
-├── page.tsx           # Home page
-├── brief/page.tsx      # Design brief form
-├── directions/page.tsx  # Direction selection
-├── pack/page.tsx       # Execution pack view
-├── compiler/page.tsx   # Prompt compiler
-├── diagnosis/page.tsx  # Diagnosis tool
-├── patterns/page.tsx   # Design patterns library
-├── pricing/page.tsx    # Pricing page
-└── settings/page.tsx   # Settings & history
+  layout.tsx                 # Root layout with Liquid Glass background
+  page.tsx                   # Home page (3 entry points)
+  brief/page.tsx            # Design brief form
+  directions/page.tsx       # Design direction selection
+  pack/page.tsx             # Execution pack preview
+  compiler/page.tsx         # Multi-tool prompt preview
+  diagnosis/page.tsx        # Diagnosis form & report with screenshot upload
+  workspace/page.tsx        # Project workspace (create/rename/delete/duplicate/export)
+  patterns/page.tsx         # Design pattern library
+  pricing/page.tsx          # Pricing tiers (UI only)
+  settings/page.tsx         # History & settings
 
 components/
-├── layout/            # App shell, nav, background
-└── ui/                # Glass card, buttons, inputs
-    └── product/       # Mode selector, brief form, etc.
+  layout/                   # App shell, navigation, background
+  ui/                       # Glass cards, buttons, copy button, score bars
+  product/                  # Mode selector, brief form, direction cards, screenshot uploader, etc.
 
 lib/
-├── types.ts           # TypeScript interfaces
-├── constants.ts       # Constants and options
-├── design-patterns.ts # 12 original patterns
-├── design-directions.ts # 3 design directions
-├── prompt-templates.ts # Tool prompt generators
-├── diagnosis.ts        # Mock diagnosis logic
-├── storage.ts          # localStorage utilities
-└── utils.ts           # Helper functions
+  types.ts                  # TypeScript type definitions (including Phase 3 types)
+  constants.ts              # App constants
+  design-patterns.ts        # 12 original design patterns
+  design-directions.ts      # 3 curated design directions
+  prompt-templates.ts       # Tool-specific prompt generators
+  diagnosis.ts              # Diagnosis mock logic with dynamic findings
+  storage.ts                # localStorage helpers
+  utils.ts                  # Utility functions
+  connectors/               # Phase 3: AI provider abstraction layer
+    ai-provider.ts          # Design AI provider interface
+    vision-provider.ts      # Vision diagnosis provider interface
+    mock-provider.ts        # Default mock implementation
+    openai-provider.ts      # OpenAI placeholder (TODO)
+    claude-provider.ts      # Claude placeholder (TODO)
+    gemini-provider.ts      # Gemini placeholder (TODO)
+    provider-registry.ts    # Provider factory based on env config
 
 store/
-└── use-design-store.ts # Zustand store
+  use-design-store.ts       # Zustand global state (Phase 3: project management)
+
+legacy/
+  vibe_design_translator.prototype.tsx  # Original single-file prototype
 ```
+
+**Environment Variables:**
+
+See `.env.example` for configuration. By default, the app uses mock providers:
+
+```env
+NEXT_PUBLIC_AI_PROVIDER=mock
+NEXT_PUBLIC_ENABLE_REAL_AI=false
+NEXT_PUBLIC_ENABLE_VISION_DIAGNOSIS=false
+```
+
+To connect real AI APIs, set the appropriate API key and change `NEXT_PUBLIC_AI_PROVIDER` to `openai`, `claude`, or `gemini`.
 
 ### Why Phase 1 Doesn't Connect Real AI
 
@@ -174,20 +205,37 @@ store/
 - No third-party screenshots, logos, or trademarks referenced
 - All "reference" language uses: "abstract design signals", "implementation guidance", "logic reference"
 
-### Roadmap
+- ~~**Phase 1:**~~ ✅ Engineering foundation, type system, page routing, mock flows
+- ~~**Phase 2:**~~ ✅ Design decision questionnaire, recommendation engine, execution pack enhancement, Markdown export
+- ~~**Phase 3:**~~ ✅ AI Diagnosis Foundation: project workspace, screenshot upload, AI connector abstraction, provider registry
+- **Phase 4:** Connect real AI APIs (Claude, GPT-4, Gemini) for prompt generation
+- **Phase 5:** User authentication, project saving, cloud sync
+- **Phase 6:** Stripe integration, subscription billing, team plans
+- **Phase 7:** Private pattern library, brand rules, shared design memory
+- **Phase 8:** API/MCP access for enterprise integration
+- **Phase 9:** Bilingual output (Chinese + English), internationalization
 
-| Phase | Features |
-|-------|----------|
-| **Phase 1** (Current) | Engineering MVP, localStorage, mock AI |
-| **Phase 2** | Real AI API connectors (Claude, Gemini) |
-| **Phase 3** | Vision diagnosis (screenshot upload) |
-| **Phase 4** | User auth, project workspace |
-| **Phase 5** | Stripe billing, subscription tiers |
-| **Phase 6** | Team workspace, shared design memory |
-| **Phase 7** | Brand rules, private pattern library |
-| **Phase 8** | API/MCP access, enterprise integration |
+**Phase 3 Highlights (Latest):**
+
+- **Project Workspace:** Full CRUD (create/rename/delete/duplicate/export) with localStorage persistence
+- **Screenshot Uploader:** Drag-drop upload, local preview, PNG/JPG/WEBP support, 5MB limit
+- **AI Connector Abstraction:** Provider pattern with interface definitions and mock default; OpenAI/Claude/Gemini placeholders ready for future integration
+- **Provider Registry:** Environment-based provider selection (`NEXT_PUBLIC_AI_PROVIDER`)
+- **Enhanced Diagnosis:** Dynamic findings based on page type and pain points, detailed findings with severity levels, repair strategy recommendations
+- **10 Page Routes:** Home, Brief, Directions, Pack, Compiler, Diagnosis, Workspace, Patterns, Pricing, Settings
 
 ### Interview Highlights
+
+- Full-stack Next.js App Router architecture (not just SPA)
+- Type-safe state management (Zustand + TypeScript)
+- Design-to-prompt translation engine (product thinking + engineering)
+- Anti-AI-look diagnosis logic (shows awareness of AI-generated UI problems)
+- Compliance-first approach (IP-aware, legal-safe design patterns)
+- Liquid Glass premium visual system (not default template)
+- Clear separation of concerns (layout, UI, product, data, store)
+- Multi-tool prompt adaptation (Codex, Claude Code, Gemini, WorkBuddy)
+- Progress tracking and user flow visibility
+- Provider pattern for AI abstraction (swap providers without code changes)
 
 When presenting this project in interviews:
 
@@ -253,15 +301,19 @@ When presenting this project in interviews:
    - Gemini（终端工作流）
    - WorkBuddy（中文工程任务）
 
-### 当前版本：Phase 2 Preparation
+### 当前版本：Phase 3 AI Diagnosis Foundation
 
-本版本为 **Phase 2 准备版本**，已包含：
+本版本已完成：
 - 完整的工程化结构
 - 增强的设计反问系统
 - 方向推荐引擎
 - 工具特定 Prompt 编译器
 - Markdown 导出
 - 12 个原创设计模式
+- **项目工作台**：项目 CRUD、导出
+- **截图上传**：拖拽上传、本地预览、5MB 限制
+- **AI 连接器抽象**：Provider 模式、Mock 默认实现
+- **Provider 注册表**：环境变量驱动的选择
 
 ### 如何运行
 
@@ -287,6 +339,6 @@ MIT License - See LICENSE file for details.
 
 ## Version
 
-**Current Version**: Phase 2 Preparation (Engineering foundation for AI integration)
+**Current Version**: Phase 3 AI Diagnosis Foundation
 
-**Version Progress**: 50% → 78%
+**Note:** Phase 3 complete. Not production-ready yet. AI providers are mock-only; real API integration is the next priority.

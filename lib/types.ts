@@ -38,7 +38,7 @@ export interface DesignBrief {
   productCategory: string;
   targetUsers: string;
   pageGoal: string;
-  
+
   // Legacy fields
   desiredFeeling: string[];
   avoidedFeeling: string[];
@@ -46,11 +46,11 @@ export interface DesignBrief {
   visualIntensity: VisualIntensity;
   contentDensity: ContentDensity;
   outputTool: ToolType;
-  
+
   // Enhanced Design Decision Fields
   firstImpression?: string;
   businessPriority?: string;
-  visualReference?: string;
+  visualReferenceTolerance?: string;
   avoidedAISmell?: string[];
   audience?: string;
 }
@@ -133,12 +133,12 @@ export interface DesignExecutionPack {
   acceptanceCriteria: string[];
   antiAILookChecklist: string[];
   prompts: Record<ToolType, string>;
-  
+
   // Enhanced structure
   contentTone?: string[];
   componentRules?: string[];
   responsiveRules?: string[];
-  
+
   // Metadata
   productName?: string;
   productCategory?: string;
@@ -161,9 +161,12 @@ export interface DiagnosisScores {
 }
 
 export interface DiagnosisFinding {
+  id?: string;
   category: string;
-  issue: string;
-  severity: "critical" | "warning" | "info";
+  issue?: string;
+  description?: string;
+  recommendation?: string;
+  severity: "critical" | "warning" | "info" | "high" | "medium" | "low";
 }
 
 export interface DiagnosisFix {
@@ -178,8 +181,8 @@ export interface DiagnosisReport {
   findings: string[];
   fixes: string[];
   refactorPrompts: Record<ToolType, string>;
-  
-  // Enhanced fields
+
+  // Enhanced fields (Phase 2)
   detailedFindings?: DiagnosisFinding[];
   repairStrategy?: {
     layout?: string[];
@@ -187,9 +190,13 @@ export interface DiagnosisReport {
     typography?: string[];
     interaction?: string[];
     conversion?: string[];
-  };
+  } | Record<string, string>;
   pageType?: string;
   primaryPainPoint?: string;
+
+  // Phase 3 fields
+  screenshotAnalyzed?: boolean;
+  confidence?: "low" | "medium" | "high";
 }
 
 export interface DiagnosisInput {
@@ -215,6 +222,53 @@ export interface HistoryItem {
   timestamp: string;
   type: HistoryEventType;
   data: unknown;
+}
+
+// ============================================================
+// Project Workspace (Phase 3)
+// ============================================================
+
+export interface ScreenshotAsset {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  dataUrl: string;
+  uploadedAt: string;
+}
+
+export interface PromptExport {
+  id: string;
+  tool: ToolType;
+  content: string;
+  exportedAt: string;
+}
+
+export interface DiagnosisReportEnhanced extends DiagnosisReport {
+  screenshotAnalyzed: boolean;
+  screenshotAssetId?: string;
+  detailedFindings: Array<{
+    id: string;
+    category: string;
+    severity: "low" | "medium" | "high";
+    description: string;
+    recommendation: string;
+  }>;
+  repairStrategy: Record<string, string>;
+  confidence: "low" | "medium" | "high";
+}
+
+export interface DesignProject {
+  id: string;
+  name: string;
+  category: string; // "landing" | "product" | "marketing" | "dashboard" | "other"
+  brief: DesignBrief | null;
+  selectedDirectionId: string | null;
+  diagnosisReports: DiagnosisReportEnhanced[];
+  promptExports: PromptExport[];
+  screenshots: ScreenshotAsset[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ============================================================

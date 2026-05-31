@@ -13,9 +13,8 @@ import { generateAntiAILookChecklist } from "./prompt-templates";
  * Generate a mock diagnosis report based on user input
  */
 export function generateMockDiagnosisReport(
-  pageType: string,
-  _pageDescription: string,
-  primaryPainPoint: string
+  pageType?: string,
+  primaryPainPoint?: string
 ): DiagnosisReport {
   // Generate scores based on pain point
   const scores = generateScoresBasedOnPainPoint(primaryPainPoint);
@@ -32,7 +31,7 @@ export function generateMockDiagnosisReport(
   );
 
   // Generate findings and fixes based on scores
-  const { findings, fixes, detailedFindings, repairStrategy } = generateFindingsAndFixes(scores, primaryPainPoint);
+  const { findings, fixes, detailedFindings, repairStrategy } = generateFindingsAndFixes(scores, pageType, primaryPainPoint);
 
   const report: DiagnosisReport = {
     overallScore,
@@ -59,7 +58,7 @@ export function generateMockDiagnosisReport(
 /**
  * Generate scores based on the primary pain point
  */
-function generateScoresBasedOnPainPoint(painPoint: string): DiagnosisScores {
+function generateScoresBasedOnPainPoint(painPoint?: string): DiagnosisScores {
   // Base scores
   const baseScores = {
     aiTemplateFeeling: 55,
@@ -140,7 +139,8 @@ function generateScoresBasedOnPainPoint(painPoint: string): DiagnosisScores {
  */
 function generateFindingsAndFixes(
   scores: DiagnosisScores,
-  primaryPainPoint: string
+  pageType?: string,
+  primaryPainPoint?: string
 ): {
   findings: string[];
   fixes: string[];
@@ -172,13 +172,14 @@ function generateFindingsAndFixes(
     fixes.push("Introduce custom color palette with brand-specific variations");
     fixes.push("Add unique layout elements that break template patterns");
     fixes.push("Consider asymmetric layouts or unconventional section ordering");
-    
+
     detailedFindings.push({
+      id: "finding-ai-template",
       category: "AI Template",
       issue: "Generic SaaS aesthetic detected",
       severity: "critical",
     });
-    
+
     repairStrategy.color.push("Create brand-specific color palette with unique variations");
     repairStrategy.layout.push("Break template patterns with custom section ordering");
   }
@@ -191,13 +192,14 @@ function generateFindingsAndFixes(
     fixes.push("Increase size contrast between heading levels (3:1 minimum ratio)");
     fixes.push("Make primary CTA visually dominant with size, color, and position");
     fixes.push("Use whitespace to separate content groups into clear chapters");
-    
+
     detailedFindings.push({
+      id: "finding-visual-hierarchy",
       category: "Visual Hierarchy",
       issue: "Competing elements and unclear CTAs",
       severity: "critical",
     });
-    
+
     repairStrategy.layout.push("Establish clear 3:1 heading ratio");
     repairStrategy.conversion.push("Dominant CTA placement with visual weight");
   }
@@ -210,13 +212,14 @@ function generateFindingsAndFixes(
     fixes.push("Reduce to 1-2 accent colors maximum, use for interactive elements only");
     fixes.push("Create a color scale (5-7 shades) for each hue");
     fixes.push("Test color combinations for harmony using systematic approach");
-    
+
     detailedFindings.push({
+      id: "finding-color",
       category: "Color System",
       issue: "Random palette without brand identity",
       severity: "warning",
     });
-    
+
     repairStrategy.color.push("Limit to 1-2 accent colors for interactions");
     repairStrategy.color.push("Build 5-7 shade color scale per hue");
   }
@@ -229,13 +232,14 @@ function generateFindingsAndFixes(
     fixes.push("Define explicit type scale with 3-4 levels maximum");
     fixes.push("Establish consistent weight usage (e.g., headings: semibold, body: regular)");
     fixes.push("Set body line-height to 1.5-1.7 for optimal readability");
-    
+
     detailedFindings.push({
+      id: "finding-typography",
       category: "Typography",
       issue: "Inconsistent type scale and weight usage",
       severity: "warning",
     });
-    
+
     repairStrategy.typography.push("Define 3-4 level type scale");
     repairStrategy.typography.push("Consistent weight hierarchy");
     repairStrategy.typography.push("1.5-1.7 line-height for body");
@@ -249,13 +253,14 @@ function generateFindingsAndFixes(
     fixes.push("Create spacing scale (8px base unit)");
     fixes.push("Use larger padding for hero/sections, smaller for components");
     fixes.push("Vary spacing to create visual interest while maintaining consistency");
-    
+
     detailedFindings.push({
+      id: "finding-spacing",
       category: "Spacing",
       issue: "Uniform spacing without rhythm",
       severity: "warning",
     });
-    
+
     repairStrategy.layout.push("8px-based spacing scale");
     repairStrategy.layout.push("Hero sections: larger padding");
   }
@@ -268,13 +273,14 @@ function generateFindingsAndFixes(
     fixes.push("Reduce animation duration to 150-300ms maximum");
     fixes.push("Use subtle transforms (opacity, translateY) over scale/rotate");
     fixes.push("Respect prefers-reduced-motion for accessibility");
-    
+
     detailedFindings.push({
+      id: "finding-interaction",
       category: "Interactions",
       issue: "Excessive and distracting animations",
       severity: "warning",
     });
-    
+
     repairStrategy.interaction.push("150-300ms animation maximum");
     repairStrategy.interaction.push("Opacity/translateY over scale/rotate");
   }
@@ -287,15 +293,67 @@ function generateFindingsAndFixes(
     fixes.push("Ensure CTA appears above fold with high visual weight");
     fixes.push("Add trust signals (logos, testimonials, guarantees) near CTAs");
     fixes.push("Create clear visual path from value prop to conversion");
-    
+
     detailedFindings.push({
+      id: "finding-conversion",
       category: "Conversion",
       issue: "Unclear CTA and conversion path",
       severity: "critical",
     });
-    
+
     repairStrategy.conversion.push("Above-fold CTA with visual dominance");
     repairStrategy.conversion.push("Trust signals adjacent to CTAs");
+  }
+
+  // Add page-type-specific findings
+  if (pageType) {
+    const pageTypeFindings: Record<string, string[]> = {
+      "landing-page": [
+        "Hero section lacks clear value proposition hierarchy",
+        "Above-fold content competing for attention",
+        "Missing social proof or trust indicators",
+      ],
+      "product-page": [
+        "Product benefits not clearly differentiated",
+        "Feature descriptions too technical for target users",
+        "Lack of visual product demonstration",
+      ],
+      "pricing-page": [
+        "Pricing tiers not visually differentiated enough",
+        "Recommended plan not sufficiently emphasized",
+        "Missing comparison table or feature breakdown",
+      ],
+      "dashboard": [
+        "Information density too high, lacks visual breathing room",
+        "Key metrics not visually prominent enough",
+        "Navigation unclear for complex data views",
+      ],
+    };
+
+    if (pageTypeFindings[pageType]) {
+      findings.push(...pageTypeFindings[pageType]);
+    }
+  }
+
+  // Add pain-point-specific findings
+  if (primaryPainPoint) {
+    const painPointKeywords = primaryPainPoint.toLowerCase();
+    if (painPointKeywords.includes("color") || painPointKeywords.includes("色彩")) {
+      findings.push("Color system lacks intentional brand alignment");
+      fixes.push("Define brand-aligned color palette with clear primary/secondary roles");
+    }
+    if (painPointKeywords.includes("layout") || painPointKeywords.includes("布局")) {
+      findings.push("Layout structure follows generic template patterns");
+      fixes.push("Introduce asymmetric or unconventional layout elements");
+    }
+    if (painPointKeywords.includes("font") || painPointKeywords.includes("typography") || painPointKeywords.includes("字体")) {
+      findings.push("Typography hierarchy doesn't guide reading flow effectively");
+      fixes.push("Establish 3-level type scale with clear size and weight differences");
+    }
+    if (painPointKeywords.includes("spacing") || painPointKeywords.includes("间距")) {
+      findings.push("Spacing feels uniform rather than intentional");
+      fixes.push("Use varied spacing to create rhythm and visual interest");
+    }
   }
 
   return {

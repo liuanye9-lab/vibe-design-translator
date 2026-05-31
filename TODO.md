@@ -1,8 +1,8 @@
 # TODO - Vibe Design Translator
 
-## Version: Phase 2 Preparation
+## Version: Phase 3 AI Diagnosis Foundation
 **Last Updated**: 2026-05-31
-**Project Progress**: 68% → 78%
+**Project Progress**: 78% → 85%
 
 ---
 
@@ -16,7 +16,7 @@
 
 ---
 
-## P0 - Critical (Must Fix Before Phase 2)
+## P0 - Critical (Must Fix Before Phase 4)
 
 ### Engineering Stability
 
@@ -24,7 +24,7 @@
 - [x] TypeScript strict mode compliance
 - [x] ESLint passes
 - [x] localStorage hydration works without flicker
-- [x] All 9 pages route correctly
+- [x] All 10 pages route correctly
 
 ### Core User Flows
 
@@ -33,6 +33,8 @@
 - [x] Patterns library browse and search
 - [x] Copy prompt functionality
 - [x] History tracking
+- [x] Project workspace CRUD (Phase 3)
+- [x] Screenshot upload (Phase 3)
 
 ---
 
@@ -47,17 +49,8 @@
 - [ ] Rate limiting and retry logic
 - [ ] Cost estimation display
 
-### Project Workspace
+### Vision Diagnosis Enhancement
 
-- [ ] Save/load projects
-- [ ] Project list view
-- [ ] Project rename and delete
-- [ ] Project export (JSON/Markdown)
-- [ ] Project sharing link
-
-### Vision Diagnosis
-
-- [ ] Screenshot upload component
 - [ ] Image preview and crop
 - [ ] Vision API integration (Claude/Gemini)
 - [ ] Before/after comparison view
@@ -154,6 +147,16 @@
 
 ## Changelog
 
+### 2026-05-31 - Phase 3 AI Diagnosis Foundation
+
+- **Project Workspace**: Full CRUD (create/rename/delete/duplicate/export)
+- **Screenshot Uploader**: Drag-drop, local preview, 5MB limit
+- **AI Connector Abstraction**: Provider pattern, mock default, OpenAI/Claude/Gemini placeholders
+- **Provider Registry**: Environment-based provider selection
+- **Enhanced Diagnosis**: Dynamic findings based on pageType/painPoint
+- **10 Page Routes**: Added /workspace
+- Build passes, lint clean, TypeScript strict
+
 ### 2026-05-31 - Phase 2 Preparation
 
 - Enhanced brief form with design decision questions
@@ -164,7 +167,6 @@
 - Added detailed findings with severity levels
 - Created .eslintrc.json for linting
 - Fixed TypeScript type issues
-- Build passes with 12 pages
 
 ### 2026-05-30 - Engineering MVP
 

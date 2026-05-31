@@ -96,23 +96,6 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
           </TagGroup>
         </div>
 
-        {/* Screenshot Upload (Placeholder) */}
-        <div>
-          <SectionLabel>Screenshot (Optional)</SectionLabel>
-          <div
-            className={cn(
-              "border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8",
-              "flex flex-col items-center justify-center gap-3",
-              "text-[var(--color-text-secondary)]",
-              "cursor-pointer hover:border-[var(--color-accent-mist-blue)] transition-colors"
-            )}
-          >
-            <Upload className="w-8 h-8" />
-            <span className="text-sm">Screenshot upload coming soon</span>
-            <span className="text-xs">For now, we analyze based on your description</span>
-          </div>
-        </div>
-
         {/* Submit Button */}
         <LiquidButton
           onClick={handleSubmit}

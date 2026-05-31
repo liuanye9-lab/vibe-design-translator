@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
-import { Sparkles, History, Settings, BookOpen, ArrowLeft } from "lucide-react";
+import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Sparkles },
+  { href: "/workspace", label: "Workspace", icon: Folder },
   { href: "/patterns", label: "Patterns", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
