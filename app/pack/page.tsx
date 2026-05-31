@@ -19,10 +19,12 @@ import { getDirectionById } from "@/lib/design-directions";
 import { DesignExecutionPack } from "@/lib/types";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export default function PackPage() {
   const router = useRouter();
   const { brief, selectedDirectionId, selectedTool, setSelectedTool, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
+  const { t } = useI18n();
   const [pack, setPack] = useState<DesignExecutionPack | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -58,7 +60,7 @@ export default function PackPage() {
         <PageWrapper>
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse text-[var(--color-text-secondary)]">
-              Generating your execution pack...
+              {t("pack_loading")}
             </div>
           </PageContainer>
         </PageWrapper>
@@ -82,15 +84,15 @@ export default function PackPage() {
               className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to directions</span>
+              <span>{t("nav_back")}</span>
             </Link>
 
             <SectionLabel>
-              Step 3 of 3
+              {t("pack_step_label")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Review your execution pack and copy the prompt for your preferred tool.">
-              Your Design Execution Pack
+            <SectionHeading subtitle={t("pack_subtitle")}>
+              {t("pack_title")}
             </SectionHeading>
           </div>
 
@@ -100,7 +102,7 @@ export default function PackPage() {
               <span className="font-medium text-[var(--color-text-primary)]">{brief.productName}</span>
               {" — "}
               <span className="text-[var(--color-accent-ios-blue)]">{direction.name}</span>
-              {" direction"}
+              {" "}{t("pack_direction_suffix")}
             </p>
           </div>
 
@@ -122,10 +124,10 @@ export default function PackPage() {
               variant="secondary"
               onClick={() => router.push("/compiler")}
             >
-              View All Prompts
+              {t("pack_view_all_prompts")}
             </LiquidButton>
             <LiquidButton onClick={() => router.push("/")}>
-              Start New
+              {t("pack_start_new")}
               <ArrowRight className="w-4 h-4 ml-2" />
             </LiquidButton>
           </div>

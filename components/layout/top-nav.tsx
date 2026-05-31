@@ -9,13 +9,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
 import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder } from "lucide-react";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
-const navItems = [
-  { href: "/", label: "Home", icon: Sparkles },
-  { href: "/workspace", label: "Workspace", icon: Folder },
-  { href: "/patterns", label: "Patterns", icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+const navItemsKeys = [
+  "nav_home",
+  "nav_workspace",
+  "nav_patterns",
+  "nav_settings",
+] as const;
+
+const navItemHrefs = ["/", "/workspace", "/patterns", "/settings"];
+const navItemIcons = [Sparkles, Folder, BookOpen, Settings];
 
 interface TopNavProps {
   className?: string;
@@ -32,6 +37,13 @@ export function TopNav({
 }: TopNavProps) {
   const pathname = usePathname();
   const history = useDesignStore((state) => state.history);
+  const { t } = useI18n();
+
+  const navItems = navItemsKeys.map((key, i) => ({
+    href: navItemHrefs[i],
+    label: t(key),
+    icon: navItemIcons[i],
+  }));
 
   return (
     <nav
@@ -57,7 +69,7 @@ export function TopNav({
                 )}
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
+                <span className="hidden sm:inline">{t("nav_back")}</span>
               </Link>
             ) : (
               <Link
@@ -68,7 +80,7 @@ export function TopNav({
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-semibold text-[var(--color-text-primary)] hidden sm:inline">
-                  Vibe Translator
+                  {t("nav_brand")}
                 </span>
               </Link>
             )}
@@ -105,7 +117,7 @@ export function TopNav({
             })}
           </div>
 
-          {/* Right: History indicator */}
+          {/* Right: History indicator + Language toggle */}
           <div className="flex items-center gap-4">
             {history.length > 0 && (
               <div className="flex items-center gap-2">
@@ -115,6 +127,8 @@ export function TopNav({
                 </span>
               </div>
             )}
+
+            <LanguageToggle />
 
             {/* Mobile menu button */}
             <button

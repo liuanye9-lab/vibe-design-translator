@@ -15,10 +15,12 @@ import { useDesignStore } from "@/store/use-design-store";
 import { generateExecutionPack } from "@/lib/prompt-templates";
 import { getDirectionById } from "@/lib/design-directions";
 import { DesignExecutionPack } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export default function CompilerPage() {
   const router = useRouter();
   const { brief, selectedDirectionId, selectedTool, setSelectedTool, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
+  const { t } = useI18n();
   const [pack, setPack] = useState<DesignExecutionPack | null>(null);
 
   // Hydrate store from localStorage on mount
@@ -47,13 +49,13 @@ export default function CompilerPage() {
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <p className="text-[var(--color-text-secondary)] mb-4">
-                No design brief found. Start from the home page.
+                {t("compiler_no_brief")}
               </p>
               <button
                 onClick={() => router.push("/")}
                 className="px-4 py-2 bg-[var(--color-accent-ios-blue)] text-white rounded-xl"
               >
-                Go to Home
+                {t("compiler_go_home")}
               </button>
             </div>
           </PageContainer>
@@ -74,11 +76,11 @@ export default function CompilerPage() {
         <PageContainer className="py-12">
           <div className="mb-8">
             <SectionLabel>
-              Prompt Compiler
+              {t("compiler_step_label")}
             </SectionLabel>
 
-            <SectionHeading subtitle={`View and copy prompts for ${brief?.productName} in ${direction.name} direction.`}>
-              Tool-Specific Prompts
+            <SectionHeading subtitle={t("compiler_subtitle").replace("{product}", brief?.productName ?? "").replace("{direction}", direction.name)}>
+              {t("compiler_title")}
             </SectionHeading>
           </div>
 
@@ -88,7 +90,7 @@ export default function CompilerPage() {
               <span className="font-medium text-[var(--color-text-primary)]">{brief?.productName}</span>
               {" — "}
               <span className="text-[var(--color-accent-ios-blue)]">{direction.name}</span>
-              {" direction"}
+              {" "}{t("pack_direction_suffix")}
             </p>
           </div>
 

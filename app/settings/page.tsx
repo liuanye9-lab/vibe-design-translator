@@ -13,6 +13,7 @@ import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/gl
 import { HistoryPanel } from "@/components/product/history-panel";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { ToolSelector } from "@/components/product/tool-selector";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { useDesignStore } from "@/store/use-design-store";
 import { TOOL_LABELS } from "@/lib/constants";
 import { getDirectionById } from "@/lib/design-directions";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { Trash2, Download, AlertTriangle } from "lucide-react";
 
 export default function SettingsPage() {
+  const { t } = useI18n();
   const {
     brief,
     selectedDirectionId,
@@ -42,7 +44,7 @@ export default function SettingsPage() {
   const direction = selectedDirectionId ? getDirectionById(selectedDirectionId) : null;
 
   const handleClearAllData = () => {
-    if (confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+    if (confirm(t("settings_confirm_clear"))) {
       clearAllData();
     }
   };
@@ -72,11 +74,11 @@ export default function SettingsPage() {
         <PageContainer className="py-12">
           <div className="mb-8">
             <SectionLabel>
-              Settings & Data
+              {t("settings_tag")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Manage your saved data, history, and preferences.">
-              Settings
+            <SectionHeading subtitle={t("settings_subtitle")}>
+              {t("settings_title")}
             </SectionHeading>
           </div>
 
@@ -87,14 +89,14 @@ export default function SettingsPage() {
               <GlassCard>
                 <GlassCardHeader>
                   <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                    Current State
+                    {t("settings_state_title")}
                   </h3>
                 </GlassCardHeader>
                 <GlassCardContent className="space-y-4">
                   {/* Brief */}
                   <div>
                     <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                      Design Brief
+                      {t("settings_brief_label")}
                     </span>
                     {brief ? (
                       <div className="mt-2 p-3 rounded-xl bg-[var(--color-surface)]">
@@ -107,7 +109,7 @@ export default function SettingsPage() {
                       </div>
                     ) : (
                       <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                        No brief saved
+                        {t("settings_brief_empty")}
                       </p>
                     )}
                   </div>
@@ -115,7 +117,7 @@ export default function SettingsPage() {
                   {/* Direction */}
                   <div>
                     <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                      Selected Direction
+                      {t("settings_direction_label")}
                     </span>
                     {direction ? (
                       <div className="mt-2 p-3 rounded-xl bg-[var(--color-surface)]">
@@ -125,7 +127,7 @@ export default function SettingsPage() {
                       </div>
                     ) : (
                       <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                        No direction selected
+                        {t("settings_direction_empty")}
                       </p>
                     )}
                   </div>
@@ -133,7 +135,7 @@ export default function SettingsPage() {
                   {/* Tool */}
                   <div>
                     <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                      Preferred Tool
+                      {t("settings_tool_label")}
                     </span>
                     <div className="mt-2">
                       <ToolSelector
@@ -155,7 +157,7 @@ export default function SettingsPage() {
               <GlassCard>
                 <GlassCardHeader>
                   <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                    Data Management
+                    {t("settings_data_title")}
                   </h3>
                 </GlassCardHeader>
                 <GlassCardContent className="space-y-4">
@@ -165,7 +167,7 @@ export default function SettingsPage() {
                     className="w-full justify-start"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Export Data as JSON
+                    {t("settings_export")}
                   </LiquidButton>
 
                   <LiquidButton
@@ -174,7 +176,7 @@ export default function SettingsPage() {
                     className="w-full justify-start"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Clear History Only
+                    {t("settings_clear_history")}
                   </LiquidButton>
 
                   <div className="pt-4 border-t border-[var(--color-border)]">
@@ -184,7 +186,7 @@ export default function SettingsPage() {
                       className="w-full justify-start text-rose-500 hover:text-rose-600 hover:bg-rose-50"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Clear All Data
+                      {t("settings_clear_all")}
                     </LiquidButton>
                   </div>
                 </GlassCardContent>
@@ -197,10 +199,10 @@ export default function SettingsPage() {
                     <AlertTriangle className="w-5 h-5 text-[var(--color-accent-mist-blue)] flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                        About Data Storage
+                        {t("settings_about_title")}
                       </p>
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        All data is stored locally in your browser using localStorage. No data is sent to any external server. Clearing your browser data will remove all saved information.
+                        {t("settings_about_desc")}
                       </p>
                     </div>
                   </div>
@@ -211,40 +213,40 @@ export default function SettingsPage() {
               <GlassCard>
                 <GlassCardHeader>
                   <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                    Technical Info
+                    {t("settings_tech_title")}
                   </h3>
                 </GlassCardHeader>
                 <GlassCardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">
-                      Storage
+                      {t("settings_tech_storage")}
                     </span>
                     <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                      localStorage (browser)
+                      {t("settings_tech_storage_val")}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">
-                      AI API
+                      {t("settings_tech_api")}
                     </span>
                     <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                      Not connected (Phase 1)
+                      {t("settings_tech_api_val")}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">
-                      Database
+                      {t("settings_tech_db")}
                     </span>
                     <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                      None (Phase 1)
+                      {t("settings_tech_db_val")}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">
-                      Phase
+                      {t("settings_tech_phase")}
                     </span>
                     <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                      MVP Engineering
+                      {t("settings_tech_phase_val")}
                     </span>
                   </div>
                 </GlassCardContent>

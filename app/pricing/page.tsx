@@ -10,16 +10,17 @@ import { PageWrapper } from "@/components/layout";
 import { SectionHeading, SectionLabel } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 import { Check, Zap } from "lucide-react";
 
 const plans = [
   {
     id: "free",
-    name: "Free",
-    description: "Get started with basic design direction generation.",
+    nameKey: "pricing_free",
+    descKey: "pricing_free_desc",
     price: "$0",
-    period: "forever",
+    periodKey: "pricing_free_period",
     features: [
       "Basic direction generator",
       "3 prompt exports / month",
@@ -36,10 +37,10 @@ const plans = [
   },
   {
     id: "pro",
-    name: "Pro",
-    description: "For individuals who want full access to design decision tools.",
+    nameKey: "pricing_pro",
+    descKey: "pricing_pro_desc",
     price: "$19",
-    period: "/ month",
+    periodKey: "pricing_pro_period",
     features: [
       "Unlimited prompt exports",
       "Diagnosis reports",
@@ -58,10 +59,10 @@ const plans = [
   },
   {
     id: "team",
-    name: "Team",
-    description: "For teams that need shared design memory and brand consistency.",
+    nameKey: "pricing_team",
+    descKey: "pricing_team_desc",
     price: "$49",
-    period: "/ month per seat",
+    periodKey: "pricing_team_period",
     features: [
       "Everything in Pro",
       "Shared design memory",
@@ -77,17 +78,19 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const { t } = useI18n();
+  
   return (
     <AppShell showNav={true}>
       <PageWrapper>
         <PageContainer className="py-12">
           <div className="text-center mb-12">
             <SectionLabel>
-              Pricing
+              {t("pricing_tag")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Choose the plan that fits your design workflow. All plans include localStorage persistence.">
-              Simple, transparent pricing
+            <SectionHeading subtitle={t("pricing_subtitle")}>
+              {t("pricing_title")}
             </SectionHeading>
           </div>
 
@@ -106,17 +109,17 @@ export default function PricingPage() {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--color-accent-ios-blue)] text-white text-xs font-medium">
                       <Zap className="w-3 h-3" />
-                      Most Popular
+                      {t("pricing_popular")}
                     </span>
                   </div>
                 )}
 
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
-                    {plan.name}
+                    {t(plan.nameKey)}
                   </h3>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    {plan.description}
+                    {t(plan.descKey)}
                   </p>
                 </div>
 
@@ -125,7 +128,7 @@ export default function PricingPage() {
                     {plan.price}
                   </span>
                   <span className="text-[var(--color-text-secondary)]">
-                    {" "}{plan.period}
+                    {" "}{t(plan.periodKey)}
                   </span>
                 </div>
 
@@ -151,7 +154,7 @@ export default function PricingPage() {
                   variant={plan.isPopular ? "primary" : "secondary"}
                   className="w-full"
                 >
-                  {plan.id === "free" ? "Get Started" : "Coming Soon"}
+                  {plan.id === "free" ? t("pricing_btn_free") : t("pricing_btn_paid")}
                 </LiquidButton>
               </GlassCard>
             ))}
@@ -161,11 +164,10 @@ export default function PricingPage() {
           <GlassCard className="p-6 bg-[var(--color-surface)]">
             <div className="text-center">
               <p className="text-sm text-[var(--color-text-secondary)] mb-2">
-                Phase 1 MVP - No real payment integration yet
+                {t("pricing_note_label")}
               </p>
               <p className="text-xs text-[var(--color-text-secondary)]">
-                This is an engineering prototype. Real pricing and payment will be added in Phase 5.
-                For now, all features are available for free during the testing period.
+                {t("pricing_note_desc")}
               </p>
             </div>
           </GlassCard>

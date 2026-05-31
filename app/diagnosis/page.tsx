@@ -15,6 +15,7 @@ import { DiagnosisReportView } from "@/components/product/diagnosis-report";
 import ScreenshotUploader from "@/components/product/screenshot-uploader";
 import { useDesignStore } from "@/store/use-design-store";
 import { DiagnosisReport, ScreenshotAsset } from "@/lib/types";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Image as ImageIcon, AlertTriangle } from "lucide-react";
 
@@ -41,6 +42,7 @@ interface ApiError {
 
 export default function DiagnosisPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const {
     diagnosisReport,
     setDiagnosisReport,
@@ -103,7 +105,7 @@ export default function DiagnosisPage() {
 
       if (!response.ok || !result.success) {
         const errorResult = result as ApiError;
-        throw new Error(errorResult.error?.message || "Diagnosis request failed");
+        throw new Error(errorResult.error?.message || t("diagnosis_error_fail"));
       }
 
       const apiResult = result as ApiSuccess<DiagnosisReport>;
@@ -125,7 +127,7 @@ export default function DiagnosisPage() {
       }
     } catch (err) {
       console.error("Diagnosis error:", err);
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      setError(err instanceof Error ? err.message : t("diagnosis_error_unknown"));
     } finally {
       setIsLoading(false);
     }
@@ -144,11 +146,11 @@ export default function DiagnosisPage() {
         <PageContainer className="py-12">
           <div className="mb-8">
             <SectionLabel>
-              Diagnosis Tool
+              {t("diagnosis_tag")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Identify issues with your current page and get actionable refactor prompts.">
-              Design Diagnosis
+            <SectionHeading subtitle={t("diagnosis_subtitle")}>
+              {t("diagnosis_title")}
             </SectionHeading>
           </div>
 
@@ -161,7 +163,7 @@ export default function DiagnosisPage() {
                     <AlertTriangle className="w-5 h-5 text-[var(--color-status-error)] flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-sm font-semibold text-[var(--color-status-error)] mb-1">
-                        诊断失败
+                        {t("diagnosis_fail_title")}
                       </h4>
                       <p className="text-xs text-[var(--color-text-secondary)] mb-3">
                         {error}
@@ -170,7 +172,7 @@ export default function DiagnosisPage() {
                         onClick={() => setError(null)}
                         className="text-xs text-[var(--color-accent-ios-blue)] hover:underline"
                       >
-                        返回重试
+                        {t("diagnosis_retry")}
                       </button>
                     </div>
                   </div>
@@ -180,10 +182,10 @@ export default function DiagnosisPage() {
               {/* Screenshot Upload Section */}
               <GlassCard className="p-5">
                 <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
-                  上传截图（可选）
+                  {t("diagnosis_upload_title")}
                 </h3>
                 <p className="text-xs text-[var(--color-text-secondary)] mb-4">
-                  上传你的页面截图，帮助诊断系统更好地分析问题（当前为本地预览，未上传到云端）
+                  {t("diagnosis_upload_desc")}
                 </p>
                 <div className="flex items-start gap-3">
                   <ImageIcon className="w-4 h-4 text-[var(--color-text-muted)] mt-0.5 flex-shrink-0" />
@@ -203,14 +205,14 @@ export default function DiagnosisPage() {
 
               {!currentProjectId && (
                 <div className="text-center text-xs text-[var(--color-text-muted)]">
-                  提示：此诊断结果不会自动保存。
+                  {t("diagnosis_tip")}
                   <button
                     onClick={() => router.push("/workspace")}
                     className="ml-1 text-[var(--color-accent-ios-blue)] hover:underline"
                   >
-                    前往工作台创建项目
+                    {t("diagnosis_go_workspace")}
                   </button>
-                  ，以便保存诊断记录。
+                  {t("diagnosis_tip_suffix")}
                 </div>
               )}
             </div>

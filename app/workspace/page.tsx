@@ -12,6 +12,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDesignStore } from "@/store/use-design-store";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import type { DesignProject } from "@/lib/types";
 import {
   Folder,
@@ -34,6 +35,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function WorkspacePage() {
   const router = useRouter();
+  const { t, tVar } = useI18n();
   const {
     projects,
     currentProjectId,
@@ -86,7 +88,7 @@ export default function WorkspacePage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("确定要删除此项目吗？此操作不可撤销。")) {
+    if (confirm(t("workspace_delete_confirm"))) {
       deleteProject(id);
     }
   };
@@ -129,9 +131,9 @@ export default function WorkspacePage() {
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
-              <SectionLabel>Workspace</SectionLabel>
-              <SectionHeading subtitle="管理你的设计项目与诊断记录">
-                项目工作台
+              <SectionLabel>{t("workspace_tag")}</SectionLabel>
+              <SectionHeading subtitle={t("workspace_subtitle")}>
+                {t("workspace_title")}
               </SectionHeading>
             </div>
             <LiquidButton
@@ -140,7 +142,7 @@ export default function WorkspacePage() {
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="w-4 h-4 mr-1.5" />
-              新建项目
+              {t("workspace_new")}
             </LiquidButton>
           </div>
 
@@ -149,18 +151,18 @@ export default function WorkspacePage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
               <GlassCard className="w-full max-w-md p-6">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-                  新建项目
+                  {t("workspace_new_title")}
                 </h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
-                      项目名称
+                      {t("workspace_name_label")}
                     </label>
                     <input
                       type="text"
                       value={newProjectName}
                       onChange={(e) => setNewProjectName(e.target.value)}
-                      placeholder="例如：我的产品落地页"
+                      placeholder={t("workspace_name_placeholder")}
                       className="w-full px-3 py-2.5 rounded-xl border border-[var(--color-border)] bg-white/80 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)]/30 focus:border-[var(--color-accent-ios-blue)] transition-all"
                       autoFocus
                       onKeyDown={(e) => e.key === "Enter" && handleCreate()}
@@ -168,7 +170,7 @@ export default function WorkspacePage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
-                      项目类型
+                      {t("workspace_type_label")}
                     </label>
                     <select
                       value={newProjectCategory}
@@ -200,7 +202,7 @@ export default function WorkspacePage() {
                       className="flex-1"
                       onClick={handleCreate}
                     >
-                      创建
+                      {t("workspace_create")}
                     </LiquidButton>
                   </div>
                 </div>
@@ -212,10 +214,10 @@ export default function WorkspacePage() {
           {projects.length === 0 ? (
             <EmptyState
               icon={Folder}
-              title="暂无项目"
-              description="点击「新建项目」开始创建你的第一个设计项目，或者先从 Brief 页面创建。"
+              title={t("workspace_empty_title")}
+              description={t("workspace_empty_desc")}
               action={{
-                label: "新建项目",
+                label: t("workspace_empty_action"),
                 onClick: () => setShowCreateModal(true),
               }}
             />
@@ -239,7 +241,7 @@ export default function WorkspacePage() {
                     {isCurrent && (
                       <div className="absolute top-3 right-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-accent-ios-blue)]/10 text-[var(--color-accent-ios-blue)]">
-                          当前
+                          {t("workspace_current")}
                         </span>
                       </div>
                     )}
@@ -274,10 +276,10 @@ export default function WorkspacePage() {
                     {/* Stats */}
                     <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)] mb-4">
                       {diagnosisCount > 0 && (
-                        <span>诊断 {diagnosisCount} 次</span>
+                        <span>{tVar("workspace_diagnose_count", { n: diagnosisCount })}</span>
                       )}
                       {promptCount > 0 && (
-                        <span>导出 {promptCount} 次</span>
+                        <span>{tVar("workspace_export_count", { n: promptCount })}</span>
                       )}
                       <span>
                         {new Date(project.updatedAt).toLocaleDateString("zh-CN")}
@@ -292,35 +294,35 @@ export default function WorkspacePage() {
                       <button
                         onClick={() => handleRename(project)}
                         className="p-1.5 rounded-lg hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)] transition-colors"
-                        title="重命名"
+                        title={t("workspace_rename")}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDuplicate(project.id)}
                         className="p-1.5 rounded-lg hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)] transition-colors"
-                        title="复制项目"
+                        title={t("workspace_duplicate")}
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleExportJson(project.id, project.name)}
                         className="p-1.5 rounded-lg hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)] transition-colors"
-                        title="导出 JSON"
+                        title={t("workspace_export_json")}
                       >
                         <FileJson className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleExportMarkdown(project.id, project.name)}
                         className="p-1.5 rounded-lg hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)] transition-colors"
-                        title="导出 Markdown"
+                        title={t("workspace_export_md")}
                       >
                         <FileText className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(project.id)}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-[var(--color-text-secondary)] hover:text-red-500 transition-colors ml-auto"
-                        title="删除项目"
+                        title={t("workspace_delete")}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

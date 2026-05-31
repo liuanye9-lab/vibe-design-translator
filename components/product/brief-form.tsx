@@ -4,473 +4,510 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { DesignBrief, UserMode, VisualIntensity, ContentDensity, ToolType } from "@/lib/types";
-import { useDesignStore } from "@/store/use-design-store";
-import { GlassCard } from "@/components/ui/glass-card";
-import { LiquidButton } from "@/components/ui/liquid-button";
-import { SectionLabel, SectionHeading } from "@/components/ui/section-heading";
+import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import {
-  PRODUCT_CATEGORIES,
-  DESIRED_FEELING_OPTIONS,
-  AVOIDED_FEELING_OPTIONS,
   FIRST_IMPRESSION_OPTIONS,
   BUSINESS_PRIORITY_OPTIONS,
   VISUAL_REFERENCE_OPTIONS,
   AVOIDED_AI_SMELL_OPTIONS,
   AUDIENCE_OPTIONS,
+  DESIRED_FEELING_OPTIONS,
+  AVOIDED_FEELING_OPTIONS,
 } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { ArrowRight, Lightbulb, Sparkles } from "lucide-react";
+import { DesignBrief, ToolType } from "@/lib/types";
+import { useDesignStore } from "@/store/use-design-store";
+import { GlassCard } from "@/components/ui/glass-card";
+import { LiquidButton } from "@/components/ui/liquid-button";
+import { Sparkles, CheckCircle2, ChevronDown } from "lucide-react";
 
 interface BriefFormProps {
-  mode: UserMode;
+  mode?: "has-idea" | "no-idea";
 }
 
-export function BriefForm({ mode }: BriefFormProps) {
+export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
   const router = useRouter();
-  const { updateBrief, setMode, addHistory } = useDesignStore();
+  const { t, locale } = useI18n();
+  const { setBrief, updateBrief, brief, selectedTool } = useDesignStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form state
-  const [productName, setProductName] = useState("");
-  const [productCategory, setProductCategory] = useState("");
-  const [targetUsers, setTargetUsers] = useState("");
-  const [pageGoal, setPageGoal] = useState("");
-  const [desiredFeeling, setDesiredFeeling] = useState<string[]>([]);
-  const [avoidedFeeling, setAvoidedFeeling] = useState<string[]>([]);
-  const [mainCTA, setMainCTA] = useState("");
-  const [visualIntensity, setVisualIntensity] = useState<VisualIntensity>("balanced");
-  const [contentDensity, setContentDensity] = useState<ContentDensity>("standard");
-  const [outputTool, setOutputTool] = useState<ToolType>("claude-code");
+  const [productName, setProductName] = useState(
+    brief?.productName ?? t("brief_form_product_default")
+  );
+  const [productCategory, setProductCategory] = useState(brief?.productCategory ?? "");
+  const [targetUsers, setTargetUsers] = useState(brief?.targetUsers ?? "");
+  const [firstImpression, setFirstImpression] = useState(brief?.firstImpression ?? "");
+  const [businessPriority, setBusinessPriority] = useState(brief?.businessPriority ?? "");
+  const [visualReference, setVisualReference] = useState(brief?.visualReferenceTolerance ?? "");
+  const [avoidedAISmell, setAvoidedAISmell] = useState<string[]>(
+    brief?.avoidedAISmell ?? []
+  );
+  const [audience, setAudience] = useState(brief?.audience ?? "");
+  const [pageGoal, setPageGoal] = useState(brief?.pageGoal ?? "");
+  const [desiredFeeling, setDesiredFeeling] = useState<string[]>(
+    brief?.desiredFeeling ?? []
+  );
+  const [avoidedFeeling, setAvoidedFeeling] = useState<string[]>(
+    brief?.avoidedFeeling ?? []
+  );
+  const [mainCTA, setMainCTA] = useState(brief?.mainCTA ?? "");
+  const [visualIntensity, setVisualIntensity] = useState(
+    brief?.visualIntensity ?? "balanced"
+  );
+  const [contentDensity, setContentDensity] = useState(brief?.contentDensity ?? "standard");
+  const [tool, setTool] = useState<ToolType>(selectedTool);
 
-  // Enhanced fields for has-idea mode
-  const [firstImpression, setFirstImpression] = useState<string>("");
-  const [businessPriority, setBusinessPriority] = useState<string>("");
-  const [visualReference, setVisualReference] = useState<string>("");
-  const [avoidedAISmell, setAvoidedAISmell] = useState<string[]>([]);
-  const [audience, setAudience] = useState<string>("");
+  // Build translated category options
+  const categoryOptions = [
+    { value: "saas", label: t("cat_saas") },
+    { value: "mobile", label: t("cat_mobile") },
+    { value: "ecommerce", label: t("cat_ecommerce") },
+    { value: "portfolio", label: t("cat_portfolio") },
+    { value: "blog", label: t("cat_blog") },
+    { value: "marketing", label: t("cat_marketing") },
+    { value: "dashboard", label: t("cat_dashboard") },
+    { value: "docs", label: t("cat_docs") },
+    { value: "event", label: t("cat_event") },
+    { value: "other", label: t("cat_other") },
+  ];
 
-  // Light mode (no-idea) just needs basic info
-  const isLightMode = mode === "no-idea";
-
-  const handleToggleFeeling = (feeling: string, currentList: string[], setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    if (currentList.includes(feeling)) {
-      setter(currentList.filter((f) => f !== feeling));
-    } else {
-      setter([...currentList, feeling]);
-    }
-  };
-
-  const handleToggleAISmell = (smell: string) => {
-    if (avoidedAISmell.includes(smell)) {
-      setAvoidedAISmell(avoidedAISmell.filter((s) => s !== smell));
-    } else {
-      setAvoidedAISmell([...avoidedAISmell, smell]);
-    }
-  };
-
-  const handleSubmit = () => {
-    const brief: DesignBrief = {
-      productName: productName || "My Product",
-      productCategory: productCategory || PRODUCT_CATEGORIES[0],
-      targetUsers: targetUsers || "General users",
-      pageGoal: pageGoal || "Create awareness and drive conversions",
-      desiredFeeling: desiredFeeling.length > 0 ? desiredFeeling : ["Professional", "Trustworthy"],
-      avoidedFeeling: avoidedFeeling.length > 0 ? avoidedFeeling : ["Generic AI", "Template-like"],
-      mainCTA: mainCTA || "Get Started",
-      visualIntensity,
-      contentDensity,
-      outputTool,
-      // Enhanced fields
-      firstImpression: isLightMode ? undefined : firstImpression || undefined,
-      businessPriority: isLightMode ? undefined : businessPriority || undefined,
-      visualReferenceTolerance: isLightMode ? undefined : visualReference || undefined,
-      avoidedAISmell: isLightMode ? undefined : avoidedAISmell.length > 0 ? avoidedAISmell : undefined,
-      audience: isLightMode ? undefined : audience || undefined,
+  const handleSave = useCallback(() => {
+    const draft: DesignBrief = {
+      productName,
+      productCategory,
+      targetUsers,
+      firstImpression,
+      businessPriority,
+      visualReferenceTolerance: visualReference,
+      avoidedAISmell,
+      audience,
+      pageGoal,
+      desiredFeeling,
+      avoidedFeeling,
+      mainCTA,
+      visualIntensity: visualIntensity as "minimal" | "balanced" | "expressive",
+      contentDensity: contentDensity as "light" | "standard" | "dense",
+      outputTool: tool,
     };
+    return draft;
+  }, [
+    productName, productCategory, targetUsers, firstImpression,
+    businessPriority, visualReference, avoidedAISmell, audience,
+    pageGoal, desiredFeeling, avoidedFeeling, mainCTA,
+    visualIntensity, contentDensity, tool,
+  ]);
 
-    setMode(mode);
-    updateBrief(brief);
-    addHistory({ type: "brief_created", data: brief });
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    const draft = handleSave();
 
-    router.push("/directions");
+    // Persist to store
+    if (brief) {
+      updateBrief(draft);
+    } else {
+      setBrief(draft);
+    }
+
+    // Navigate to directions
+    setTimeout(() => {
+      router.push("/directions");
+      setIsSubmitting(false);
+    }, 300);
+  };
+
+  const toggleStringArray = (
+    current: string[],
+    value: string
+  ): string[] => {
+    return current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+  };
+
+  // ---------- Render helpers ----------
+
+  const renderPillGroup = (
+    items: { value: string; label: string; description: string }[],
+    selected: string | string[],
+    onChange: (v: string) => void,
+    multi = false
+  ) => {
+    const isSelected = (v: string) =>
+      multi ? (selected as string[]).includes(v) : selected === v;
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => {
+          const active = isSelected(item.value);
+          return (
+            <button
+              key={item.value}
+              type="button"
+              onClick={() => onChange(item.value)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-xl",
+                "text-sm transition-all duration-200",
+                active
+                  ? "bg-[var(--color-accent-ios-blue)] text-white shadow-md"
+                  : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent-ios-blue)]"
+              )}
+            >
+              {active && <CheckCircle2 className="w-4 h-4" />}
+              <div className="text-left">
+                <span className="font-medium">{item.label}</span>
+                {item.description && (
+                  <span className="block text-xs opacity-70 mt-0.5">
+                    {item.description}
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      {/* Header */}
+    <div className="space-y-10">
+      {/* Hero section of the form */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] mb-4">
           <Sparkles className="w-4 h-4 text-[var(--color-accent-ios-blue)]" />
           <span className="text-sm font-medium text-[var(--color-text-secondary)]">
-            {isLightMode ? "Quick Direction Finder" : "Design Decision Workshop"}
+            {mode === "no-idea"
+              ? t("brief_form_badge_1")
+              : t("brief_form_badge_2")}
           </span>
         </div>
-        <SectionHeading align="center">
-          {isLightMode ? "What are you building?" : "Tell us about your vision"}
-        </SectionHeading>
-        <p className="text-[var(--color-text-secondary)] mt-2">
-          {isLightMode
-            ? "Answer a few questions and we'll suggest a design direction."
-            : "We'll translate your feelings into concrete design specifications."}
+        <h2 className="text-2xl md:text-3xl font-semibold text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_heading")}
+        </h2>
+        <p className="text-[var(--color-text-secondary)]">
+          {t("brief_form_desc1")}
         </p>
       </div>
 
-      <GlassCard className="p-8">
-        <div className="space-y-8">
-          {/* Product Name */}
-          <div>
-            <SectionLabel>
-              <span className="flex items-center gap-2">
-                <Lightbulb className="w-4 h-4" />
-                What are you building?
-              </span>
-            </SectionLabel>
-            <input
-              type="text"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              placeholder="e.g., A developer tool for API documentation"
-              className="input"
-            />
-          </div>
-
-          {/* Product Category */}
-          <div>
-            <SectionLabel>Product Category</SectionLabel>
-            <select
-              value={productCategory}
-              onChange={(e) => setProductCategory(e.target.value)}
-              className="select"
-            >
-              <option value="">Select a category</option>
-              {PRODUCT_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Target Users */}
-          <div>
-            <SectionLabel>Who is this for?</SectionLabel>
-            <input
-              type="text"
-              value={targetUsers}
-              onChange={(e) => setTargetUsers(e.target.value)}
-              placeholder="e.g., Developers building REST APIs"
-              className="input"
-            />
-          </div>
-
-          {/* Enhanced Design Questions - has-idea mode only */}
-          {!isLightMode && (
-            <>
-              {/* First Impression */}
-              <div>
-                <SectionLabel>
-                  First Impression — What should users feel within 3 seconds?
-                </SectionLabel>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Choose the emotional response you want to evoke
-                </p>
-                <div className="space-y-3">
-                  {FIRST_IMPRESSION_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setFirstImpression(option.value)}
-                      className={cn(
-                        "w-full p-4 rounded-2xl text-left transition-all duration-200",
-                        "border border-[var(--color-border)]",
-                        firstImpression === option.value
-                          ? "bg-[var(--color-accent-ios-blue)]/10 border-[var(--color-accent-ios-blue)]"
-                          : "bg-[var(--color-surface)] hover:bg-[var(--color-surface-strong)]"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
-                        </span>
-                        {firstImpression === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Business Priority */}
-              <div>
-                <SectionLabel>Business Priority — What's most important?</SectionLabel>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  This helps us optimize the design for your goals
-                </p>
-                <div className="grid grid-cols-1 gap-3">
-                  {BUSINESS_PRIORITY_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setBusinessPriority(option.value)}
-                      className={cn(
-                        "p-4 rounded-2xl text-left transition-all duration-200",
-                        "border border-[var(--color-border)]",
-                        businessPriority === option.value
-                          ? "bg-[var(--color-accent-ios-blue)]/10 border-[var(--color-accent-ios-blue)]"
-                          : "bg-[var(--color-surface)] hover:bg-[var(--color-surface-strong)]"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
-                        </span>
-                        {businessPriority === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Visual Reference */}
-              <div>
-                <SectionLabel>
-                  Visual Reference — Which aesthetic direction resonates?
-                </SectionLabel>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Abstract aesthetic tendencies (we're not copying, just finding direction)
-                </p>
-                <div className="grid grid-cols-1 gap-3">
-                  {VISUAL_REFERENCE_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setVisualReference(option.value)}
-                      className={cn(
-                        "p-4 rounded-2xl text-left transition-all duration-200",
-                        "border border-[var(--color-border)]",
-                        visualReference === option.value
-                          ? "bg-[var(--color-accent-ios-blue)]/10 border-[var(--color-accent-ios-blue)]"
-                          : "bg-[var(--color-surface)] hover:bg-[var(--color-surface-strong)]"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
-                        </span>
-                        {visualReference === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Avoided AI Smell */}
-              <div>
-                <SectionLabel>What AI page problems do you want to avoid?</SectionLabel>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Select the issues you most want to prevent
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {AVOIDED_AI_SMELL_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleToggleAISmell(option.value)}
-                      className={cn(
-                        "px-4 py-2 rounded-xl text-sm transition-all duration-200",
-                        avoidedAISmell.includes(option.value)
-                          ? "bg-[var(--color-accent-ios-blue)] text-white"
-                          : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Audience */}
-              <div>
-                <SectionLabel>Primary Audience — Who needs to be impressed?</SectionLabel>
-                <div className="grid grid-cols-1 gap-3">
-                  {AUDIENCE_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setAudience(option.value)}
-                      className={cn(
-                        "p-4 rounded-2xl text-left transition-all duration-200",
-                        "border border-[var(--color-border)]",
-                        audience === option.value
-                          ? "bg-[var(--color-accent-ios-blue)]/10 border-[var(--color-accent-ios-blue)]"
-                          : "bg-[var(--color-surface)] hover:bg-[var(--color-surface-strong)]"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
-                        </span>
-                        {audience === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Page Goal */}
-              <div>
-                <SectionLabel>Page Goal — What should this page accomplish?</SectionLabel>
-                <textarea
-                  value={pageGoal}
-                  onChange={(e) => setPageGoal(e.target.value)}
-                  placeholder="e.g., Drive sign-ups for the beta launch, explain the API-first approach, convince developers to try the product"
-                  className="textarea"
-                />
-              </div>
-
-              {/* Desired Feeling */}
-              <div>
-                <SectionLabel>Desired Feeling — Emotions to evoke</SectionLabel>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                  Select the emotions your page should evoke
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {DESIRED_FEELING_OPTIONS.map((feeling) => (
-                    <button
-                      key={feeling}
-                      onClick={() => handleToggleFeeling(feeling, desiredFeeling, setDesiredFeeling)}
-                      className={cn(
-                        "px-4 py-2 rounded-xl text-sm transition-all duration-200",
-                        desiredFeeling.includes(feeling)
-                          ? "bg-[var(--color-accent-ios-blue)] text-white"
-                          : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
-                      )}
-                    >
-                      {feeling}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Avoided Feeling */}
-              <div>
-                <SectionLabel>What to Avoid — Styles you want to prevent</SectionLabel>
-                <div className="flex flex-wrap gap-2">
-                  {AVOIDED_FEELING_OPTIONS.map((feeling) => (
-                    <button
-                      key={feeling}
-                      onClick={() => handleToggleFeeling(feeling, avoidedFeeling, setAvoidedFeeling)}
-                      className={cn(
-                        "px-4 py-2 rounded-xl text-sm transition-all duration-200",
-                        avoidedFeeling.includes(feeling)
-                          ? "bg-rose-500/80 text-white"
-                          : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
-                      )}
-                    >
-                      {feeling}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Main CTA */}
-              <div>
-                <SectionLabel>Primary Call-to-Action</SectionLabel>
-                <input
-                  type="text"
-                  value={mainCTA}
-                  onChange={(e) => setMainCTA(e.target.value)}
-                  placeholder="e.g., Start Free Trial, Get Early Access, Book Demo"
-                  className="input"
-                />
-              </div>
-            </>
+      {/* Product Name */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_product_label")}
+        </label>
+        <input
+          type="text"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+          placeholder={t("brief_form_product_placeholder")}
+          className={cn(
+            "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+            "border border-[var(--color-border)]",
+            "text-sm text-[var(--color-text-primary)]",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent",
+            "placeholder:text-[var(--color-text-tertiary)]"
           )}
+        />
+      </GlassCard>
 
-          {/* Visual Intensity */}
-          <div>
-            <SectionLabel>Visual Intensity</SectionLabel>
-            <div className="grid grid-cols-3 gap-3">
-              {(["minimal", "balanced", "expressive"] as VisualIntensity[]).map((intensity) => (
-                <button
-                  key={intensity}
-                  onClick={() => setVisualIntensity(intensity)}
-                  className={cn(
-                    "p-4 rounded-2xl text-center transition-all duration-200",
-                    visualIntensity === intensity
-                      ? "bg-[var(--color-accent-ios-blue)] text-white"
-                      : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-strong)] border border-[var(--color-border)]"
-                  )}
-                >
-                  <span className="block font-medium capitalize">{intensity}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content Density */}
-          <div>
-            <SectionLabel>Content Density</SectionLabel>
-            <div className="grid grid-cols-3 gap-3">
-              {(["light", "standard", "dense"] as ContentDensity[]).map((density) => (
-                <button
-                  key={density}
-                  onClick={() => setContentDensity(density)}
-                  className={cn(
-                    "p-4 rounded-2xl text-center transition-all duration-200",
-                    contentDensity === density
-                      ? "bg-[var(--color-accent-ios-blue)] text-white"
-                      : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-strong)] border border-[var(--color-border)]"
-                  )}
-                >
-                  <span className="block font-medium capitalize">{density}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Output Tool */}
-          <div>
-            <SectionLabel>Output Tool — Which AI tool will you use?</SectionLabel>
-            <select
-              value={outputTool}
-              onChange={(e) => setOutputTool(e.target.value as ToolType)}
-              className="select"
-            >
-              <option value="codex">Codex</option>
-              <option value="claude-code">Claude Code</option>
-              <option value="gemini">Gemini</option>
-              <option value="workbuddy">WorkBuddy</option>
-            </select>
-          </div>
-
-          {/* Submit Button */}
-          <div className="pt-4">
-            <LiquidButton
-              onClick={handleSubmit}
-              className="w-full"
-              size="lg"
-            >
-              <span>{isLightMode ? "Find My Direction" : "Generate Design Directions"}</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </LiquidButton>
-          </div>
+      {/* Product Category */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_category_label")}
+        </label>
+        <div className="relative">
+          <select
+            value={productCategory}
+            onChange={(e) => setProductCategory(e.target.value)}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+              "border border-[var(--color-border)] appearance-none",
+              "text-sm text-[var(--color-text-primary)]",
+              "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent",
+              "placeholder:text-[var(--color-text-tertiary)]"
+            )}
+          >
+            <option value="">{t("brief_form_category_placeholder")}</option>
+            {categoryOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] pointer-events-none" />
         </div>
       </GlassCard>
+
+      {/* Target Users */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_users_label")}
+        </label>
+        <textarea
+          value={targetUsers}
+          onChange={(e) => setTargetUsers(e.target.value)}
+          placeholder={t("brief_form_users_placeholder")}
+          rows={2}
+          className={cn(
+            "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+            "border border-[var(--color-border)]",
+            "text-sm text-[var(--color-text-primary)] resize-none",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent",
+            "placeholder:text-[var(--color-text-tertiary)]"
+          )}
+        />
+      </GlassCard>
+
+      {/* First Impression */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_impression_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_impression_helper")}
+        </p>
+        {renderPillGroup(
+          FIRST_IMPRESSION_OPTIONS.map((fi) => ({
+            ...fi,
+            label: t(`fi_${fi.value}`),
+            description: t(`fi_${fi.value}_desc`),
+          })),
+          firstImpression,
+          setFirstImpression
+        )}
+      </GlassCard>
+
+      {/* Business Priority */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_priority_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_priority_helper")}
+        </p>
+        {renderPillGroup(
+          BUSINESS_PRIORITY_OPTIONS.map((bp) => ({
+            ...bp,
+            label: t(`bp_${bp.value}`),
+            description: t(`bp_${bp.value}_desc`),
+          })),
+          businessPriority,
+          setBusinessPriority
+        )}
+      </GlassCard>
+
+      {/* Visual Reference */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_visual_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_visual_helper")}
+        </p>
+        {renderPillGroup(
+          VISUAL_REFERENCE_OPTIONS.map((vr) => ({
+            ...vr,
+            label: t(`vr_${vr.value}`),
+            description: t(`vr_${vr.value}_desc`),
+          })),
+          visualReference,
+          setVisualReference
+        )}
+      </GlassCard>
+
+      {/* AI Problems to Avoid */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_avoid_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_avoid_helper")}
+        </p>
+        {renderPillGroup(
+          AVOIDED_AI_SMELL_OPTIONS.map((p) => ({
+            ...p,
+            label: t(`ai_${p.value}`),
+            description: t(`ai_${p.value}_desc`),
+          })),
+          avoidedAISmell,
+          (v) => setAvoidedAISmell(toggleStringArray(avoidedAISmell, v)),
+          true
+        )}
+      </GlassCard>
+
+      {/* Audience */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_audience_label")}
+        </label>
+        {renderPillGroup(
+          AUDIENCE_OPTIONS.map((a) => ({
+            ...a,
+            label: t(`aud_${a.value}`),
+            description: t(`aud_${a.value}_desc`),
+          })),
+          audience,
+          setAudience
+        )}
+      </GlassCard>
+
+      {/* Page Goal */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_goal_label")}
+        </label>
+        <textarea
+          value={pageGoal}
+          onChange={(e) => setPageGoal(e.target.value)}
+          placeholder={t("brief_form_goal_placeholder")}
+          rows={3}
+          className={cn(
+            "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+            "border border-[var(--color-border)]",
+            "text-sm text-[var(--color-text-primary)] resize-none",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent",
+            "placeholder:text-[var(--color-text-tertiary)]"
+          )}
+        />
+      </GlassCard>
+
+      {/* Desired Feelings */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_feeling_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_feeling_helper")}
+        </p>
+        {renderPillGroup(
+          DESIRED_FEELING_OPTIONS.map((f) => ({
+            value: f,
+            label: t(`feel_${f.toLowerCase()}`),
+            description: "",
+          })),
+          desiredFeeling,
+          (v) => setDesiredFeeling(toggleStringArray(desiredFeeling, v)),
+          true
+        )}
+      </GlassCard>
+
+      {/* Feelings to Avoid */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
+          {t("brief_form_avoid_feeling_label")}
+        </label>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+          {t("brief_form_avoid_feeling_helper")}
+        </p>
+        {renderPillGroup(
+          AVOIDED_FEELING_OPTIONS.map((f) => ({
+            value: f,
+            label: t(`avoid_${f.toLowerCase()}`),
+            description: "",
+          })),
+          avoidedFeeling,
+          (v) => setAvoidedFeeling(toggleStringArray(avoidedFeeling, v)),
+          true
+        )}
+      </GlassCard>
+
+      {/* CTA */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_cta_label")}
+        </label>
+        <input
+          type="text"
+          value={mainCTA}
+          onChange={(e) => setMainCTA(e.target.value)}
+          placeholder={t("brief_form_cta_placeholder")}
+          className={cn(
+            "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+            "border border-[var(--color-border)]",
+            "text-sm text-[var(--color-text-primary)]",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent",
+            "placeholder:text-[var(--color-text-tertiary)]"
+          )}
+        />
+      </GlassCard>
+
+      {/* Visual Intensity */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-3">
+          {t("brief_form_intensity_label")}
+        </label>
+        <div className="flex gap-2">
+          {(["minimal", "balanced", "expressive"] as const).map((level) => (
+            <button
+              key={level}
+              onClick={() => setVisualIntensity(level)}
+              className={cn(
+                "flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                visualIntensity === level
+                  ? "bg-[var(--color-accent-ios-blue)] text-white shadow-md"
+                  : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent-ios-blue)]"
+              )}
+            >
+              {t(`intensity_${level}`)}
+            </button>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Content Density */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-3">
+          {t("brief_form_density_label")}
+        </label>
+        <div className="flex gap-2">
+          {(["light", "standard", "dense"] as const).map((level) => (
+            <button
+              key={level}
+              onClick={() => setContentDensity(level)}
+              className={cn(
+                "flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                contentDensity === level
+                  ? "bg-[var(--color-accent-ios-blue)] text-white shadow-md"
+                  : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent-ios-blue)]"
+              )}
+            >
+              {t(`density_${level}`)}
+            </button>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Output Tool */}
+      <GlassCard className="p-6">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          {t("brief_form_tool_label")}
+        </label>
+        <div className="relative">
+          <select
+            value={tool}
+            onChange={(e) => setTool(e.target.value as ToolType)}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl bg-[var(--color-surface)]",
+              "border border-[var(--color-border)] appearance-none",
+              "text-sm text-[var(--color-text-primary)]",
+              "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ios-blue)] focus:border-transparent"
+            )}
+          >
+            <option value="codex">{t("tool_codex")}</option>
+            <option value="claude-code">{t("tool_claude_code")}</option>
+            <option value="gemini">{t("tool_gemini")}</option>
+            <option value="workbuddy">{t("tool_workbuddy")}</option>
+          </select>
+          <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] pointer-events-none" />
+        </div>
+      </GlassCard>
+
+      {/* Submit */}
+      <div className="flex justify-center pt-4">
+        <LiquidButton onClick={handleSubmit} isLoading={isSubmitting}>
+          {t("brief_form_submit")}
+        </LiquidButton>
+      </div>
     </div>
   );
 }

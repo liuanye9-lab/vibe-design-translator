@@ -16,13 +16,13 @@ import { useDesignStore } from "@/store/use-design-store";
 import { DESIGN_DIRECTIONS, getDirectionById } from "@/lib/design-directions";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export default function DirectionsPage() {
   const router = useRouter();
   const { brief, selectedDirectionId, setSelectedDirection, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
+  const { t } = useI18n();
   const [isLoaded, setIsLoaded] = useState(false);
-
-  // Hydrate store from localStorage on mount
   useEffect(() => {
     if (!isHydrated) {
       hydrateFromStorage();
@@ -43,7 +43,7 @@ export default function DirectionsPage() {
         <PageWrapper>
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse text-[var(--color-text-secondary)]">
-              Loading...
+              {t("common_loading")}
             </div>
           </PageContainer>
         </PageWrapper>
@@ -75,15 +75,15 @@ export default function DirectionsPage() {
               className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to brief</span>
+              <span>{t("nav_back")}</span>
             </Link>
 
             <SectionLabel>
-              Step 2 of 3
+              {t("direction_step_label")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Choose a design direction that matches your vision. Each direction comes with a complete strategy and visual system.">
-              Design Direction
+            <SectionHeading subtitle={t("direction_subtitle")}>
+              {t("direction_title")}
             </SectionHeading>
           </div>
 
@@ -116,7 +116,7 @@ export default function DirectionsPage() {
               size="lg"
               className="min-w-[200px]"
             >
-              <span>Generate Pack</span>
+              <span>{t("direction_generate_pack")}</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </LiquidButton>
           </div>

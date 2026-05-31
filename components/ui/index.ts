@@ -10,3 +10,4 @@ export { TagPill, TagGroup } from "./tag-pill";
 export { ScoreBar } from "./score-bar";
 export { ScoreRing } from "./score-ring";
 export { EmptyState } from "./empty-state";
+export { LanguageToggle } from "./language-toggle";

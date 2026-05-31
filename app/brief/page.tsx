@@ -14,10 +14,12 @@ import { BriefForm } from "@/components/product/brief-form";
 import { useDesignStore } from "@/store/use-design-store";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/use-i18n";
 
 export default function BriefPage() {
   const router = useRouter();
   const { currentMode, isHydrated, hydrateFromStorage } = useDesignStore();
+  const { t } = useI18n();
 
   // Hydrate store from localStorage on mount
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function BriefPage() {
         <PageWrapper>
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse text-[var(--color-text-secondary)]">
-              Loading...
+              {t("brief_loading")}
             </div>
           </PageContainer>
         </PageWrapper>
@@ -57,19 +59,19 @@ export default function BriefPage() {
               className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to home</span>
+              <span>{t("brief_back")}</span>
             </Link>
 
             <SectionLabel>
-              Step 1 of 3
+              {t("brief_step_label")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Tell us about your product and design goals. The more detail you provide, the better the design direction we can suggest.">
-              Design Brief
+            <SectionHeading subtitle={t("brief_subtitle")}>
+              {t("brief_title")}
             </SectionHeading>
           </div>
 
-          <BriefForm mode={currentMode} />
+          <BriefForm mode={currentMode === "diagnose" ? "has-idea" : currentMode} />
         </PageContainer>
       </PageWrapper>
     </AppShell>
