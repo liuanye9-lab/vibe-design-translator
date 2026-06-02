@@ -8,18 +8,19 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
-import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder } from "lucide-react";
+import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder, Workflow } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 const navItemsKeys = [
   "nav_home",
   "nav_workspace",
+  "nav_agent_runs",
   "nav_patterns",
   "nav_settings",
 ] as const;
 
-const navItemHrefs = ["/", "/workspace", "/patterns", "/settings"];
-const navItemIcons = [Sparkles, Folder, BookOpen, Settings];
+const navItemHrefs = ["/", "/workspace", "/agent-runs", "/patterns", "/settings"];
+const navItemIcons = [Sparkles, Folder, Workflow, BookOpen, Settings];
 
 interface TopNavProps {
   className?: string;

@@ -23,6 +23,7 @@ import {
   Download,
   FileJson,
   FileText,
+  Workflow,
 } from "lucide-react";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -48,6 +49,7 @@ export default function WorkspacePage() {
     setCurrentProject,
     exportProjectAsJson,
     exportProjectAsMarkdown,
+    agentRuns,
   } = useDesignStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -280,6 +282,13 @@ export default function WorkspacePage() {
                       )}
                       {promptCount > 0 && (
                         <span>{tVar("workspace_export_count", { n: promptCount })}</span>
+                      )}
+                      {/* Agent Run Status */}
+                      {agentRuns.filter((r) => r.projectId === project.id).length > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Workflow className="w-3 h-3" />
+                          {agentRuns.filter((r) => r.projectId === project.id).length} 工作流
+                        </span>
                       )}
                       <span>
                         {new Date(project.updatedAt).toLocaleDateString("zh-CN")}

@@ -17,7 +17,11 @@ import { useDesignStore } from "@/store/use-design-store";
 import { DiagnosisReport, ScreenshotAsset } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/use-i18n";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Image as ImageIcon, AlertTriangle } from "lucide-react";
+import { Image as ImageIcon, AlertTriangle, Workflow } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AgentRunPanel } from "@/components/agent";
+import { runDiagnosisWorkflow } from "@/lib/agent/orchestrator";
+import type { AgentRun } from "@/lib/agent/types";
 
 // API response types
 interface ApiSuccess<T> {
@@ -54,6 +58,10 @@ export default function DiagnosisPage() {
     currentProjectId,
     saveCurrentBriefToProject,
     addDiagnosisToProject,
+    createAgentRun,
+    updateAgentRun,
+    addAgentEvent,
+    updateAgentStep,
   } = useDesignStore();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +80,10 @@ export default function DiagnosisPage() {
     estimatedCost?: string;
   } | null>(null);
 
+  // Agent workflow state
+  const [useAgentMode, setUseAgentMode] = useState(false);
+  const [agentRun, setAgentRun] = useState<AgentRun | null>(null);
+
   // Hydrate store from localStorage on mount
   useEffect(() => {
     if (!isHydrated) {
@@ -79,11 +91,75 @@ export default function DiagnosisPage() {
     }
   }, [isHydrated, hydrateFromStorage]);
 
+  // Agent workflow submit handler
+  const handleAgentSubmit = async (data: {
+    pageType: string;
+    pageDescription: string;
+    primaryPainPoint: string;
+  }) => {
+    setIsLoading(true);
+    setFormData(data);
+    setError(null);
+    setAgentRun(null);
+
+    try {
+      const context = {
+        projectId: currentProjectId,
+        provider: "mock" as const,
+        isRealAIEnabled: false,
+      };
+
+      const callbacks = {
+        onRunUpdate: (run: AgentRun) => {
+          setAgentRun({ ...run });
+          updateAgentRun(run.id, run);
+        },
+        onEvent: (runId: string, event: import("@/lib/agent/types").AgentEvent) => {
+          addAgentEvent(runId, event);
+        },
+        onStepUpdate: (runId: string, step: import("@/lib/agent/types").AgentStep) => {
+          updateAgentStep(runId, step.id, step);
+        },
+      };
+
+      const input = {
+        pageType: data.pageType,
+        pageDescription: data.pageDescription,
+        primaryPainPoint: data.primaryPainPoint,
+      };
+
+      const run = await runDiagnosisWorkflow(input, selectedTool, context, callbacks);
+      setAgentRun(run);
+      createAgentRun(run);
+
+      // Extract report from run result
+      if (run.result && typeof run.result === "object" && "report" in run.result) {
+        const diagReport = (run.result as { report: DiagnosisReport }).report;
+        setReport(diagReport);
+        setDiagnosisReport(diagReport);
+        addHistory({ type: "diagnosis_performed", data });
+        if (currentProjectId) {
+          addDiagnosisToProject(diagReport as Parameters<typeof addDiagnosisToProject>[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Agent diagnosis error:", err);
+      setError(err instanceof Error ? err.message : "Agent 工作流执行失败");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (data: {
     pageType: string;
     pageDescription: string;
     primaryPainPoint: string;
   }) => {
+    // Route to agent mode if enabled
+    if (useAgentMode) {
+      return handleAgentSubmit(data);
+    }
+
     setIsLoading(true);
     setFormData(data);
     setError(null);
@@ -156,6 +232,49 @@ export default function DiagnosisPage() {
 
           {!report ? (
             <div className="space-y-6">
+              {/* Agent Mode Toggle */}
+              <GlassCard className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-accent-ios-blue)]/10 flex items-center justify-center">
+                      <Workflow className="w-4 h-4 text-[var(--color-accent-ios-blue)]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
+                        Agent 工作流模式
+                      </h4>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        使用 Agent 自动拆解诊断步骤，可视化执行过程
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setUseAgentMode(!useAgentMode)}
+                    className={cn(
+                      "relative w-11 h-6 rounded-full transition-colors duration-200",
+                      useAgentMode
+                        ? "bg-[var(--color-accent-ios-blue)]"
+                        : "bg-[var(--color-border)]"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200",
+                        useAgentMode ? "translate-x-5.5 left-0.5" : "left-0.5"
+                      )}
+                    />
+                  </button>
+                </div>
+              </GlassCard>
+
+              {/* Agent Run Panel */}
+              {agentRun && useAgentMode && (
+                <AgentRunPanel
+                  run={agentRun}
+                  onClose={() => setAgentRun(null)}
+                />
+              )}
+
               {/* Error State */}
               {error && (
                 <GlassCard className="p-5 border-[var(--color-status-error)] border">

@@ -24,16 +24,31 @@ import { useDesignStore } from "@/store/use-design-store";
 import { GlassCard } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { Sparkles, CheckCircle2, ChevronDown } from "lucide-react";
+import { AgentRunPanel } from "@/components/agent";
+import { runDesignTranslationWorkflow } from "@/lib/agent/orchestrator";
+import type { AgentRun } from "@/lib/agent/types";
 
 interface BriefFormProps {
   mode?: "has-idea" | "no-idea";
+  useAgentMode?: boolean;
 }
 
-export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
+export function BriefForm({ mode = "has-idea", useAgentMode = false }: BriefFormProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const { setBrief, updateBrief, brief, selectedTool } = useDesignStore();
+  const {
+    setBrief,
+    updateBrief,
+    brief,
+    selectedTool,
+    currentProjectId,
+    createAgentRun,
+    updateAgentRun,
+    addAgentEvent,
+    updateAgentStep,
+  } = useDesignStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [agentRun, setAgentRun] = useState<AgentRun | null>(null);
 
   const [productName, setProductName] = useState(
     brief?.productName ?? t("brief_form_product_default")
@@ -112,7 +127,45 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
       setBrief(draft);
     }
 
-    // Navigate to directions
+    // Agent mode: run design translation workflow
+    if (useAgentMode) {
+      try {
+        const context = {
+          projectId: currentProjectId,
+          provider: "mock" as const,
+          isRealAIEnabled: false,
+        };
+
+        const callbacks = {
+          onRunUpdate: (run: AgentRun) => {
+            setAgentRun({ ...run });
+            updateAgentRun(run.id, run);
+          },
+          onEvent: (runId: string, event: import("@/lib/agent/types").AgentEvent) => {
+            addAgentEvent(runId, event);
+          },
+          onStepUpdate: (runId: string, step: import("@/lib/agent/types").AgentStep) => {
+            updateAgentStep(runId, step.id, step);
+          },
+        };
+
+        const run = await runDesignTranslationWorkflow(draft, context, callbacks);
+        setAgentRun(run);
+        createAgentRun(run);
+
+        // Navigate after workflow completes
+        if (run.status === "succeeded") {
+          setTimeout(() => router.push("/directions"), 500);
+        }
+      } catch (err) {
+        console.error("Agent workflow error:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // Standard mode: navigate to directions
     setTimeout(() => {
       router.push("/directions");
       setIsSubmitting(false);
@@ -504,10 +557,18 @@ export function BriefForm({ mode = "has-idea" }: BriefFormProps) {
         </div>
       </GlassCard>
 
+      {/* Agent Run Panel */}
+      {useAgentMode && agentRun && (
+        <AgentRunPanel
+          run={agentRun}
+          onClose={() => setAgentRun(null)}
+        />
+      )}
+
       {/* Submit */}
       <div className="flex justify-center pt-4">
         <LiquidButton onClick={handleSubmit} isLoading={isSubmitting}>
-          {t("brief_form_submit")}
+          {useAgentMode ? "启动 Agent 工作流" : t("brief_form_submit")}
         </LiquidButton>
       </div>
     </div>

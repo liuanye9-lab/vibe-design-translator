@@ -14,6 +14,7 @@ import {
   PromptExport,
   ScreenshotAsset,
 } from "@/lib/types";
+import type { AgentRun, AgentEvent, AgentStep } from "@/lib/agent/types";
 import { storage, historyStorage } from "@/lib/storage";
 
 // ============================================================
@@ -33,6 +34,10 @@ interface DesignStore {
   // Phase 3: Project Workspace State
   projects: DesignProject[];
   currentProjectId: string | null;
+
+  // Phase 5: Agent Workflow State
+  agentRuns: AgentRun[];
+  currentAgentRunId: string | null;
 
   // Actions
   setMode: (mode: UserMode | null) => void;
@@ -58,6 +63,14 @@ interface DesignStore {
   addPromptExportToProject: (exportItem: PromptExport) => void;
   exportProjectAsJson: (id: string) => string | null;
   exportProjectAsMarkdown: (id: string) => string | null;
+
+  // Phase 5: Agent Workflow Actions
+  createAgentRun: (run: AgentRun) => void;
+  updateAgentRun: (id: string, patch: Partial<AgentRun>) => void;
+  setCurrentAgentRun: (id: string | null) => void;
+  addAgentEvent: (runId: string, event: AgentEvent) => void;
+  updateAgentStep: (runId: string, stepId: string, patch: Partial<AgentStep>) => void;
+  clearAgentRuns: () => void;
 }
 
 // ============================================================
@@ -77,6 +90,10 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   // Phase 3: Project Workspace State
   projects: [],
   currentProjectId: null,
+
+  // Phase 5: Agent Workflow State
+  agentRuns: [],
+  currentAgentRunId: null,
 
   // Actions
   setMode: (mode) => {
@@ -162,6 +179,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       history: [],
       projects: [],
       currentProjectId: null,
+      agentRuns: [],
+      currentAgentRunId: null,
     });
     if (typeof window !== "undefined") {
       storage.set("vibe_translator_mode", null);
@@ -171,6 +190,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       storage.remove("vibe_translator_history");
       storage.remove("vibe_translator_projects");
       storage.remove("vibe_translator_current_project");
+      storage.remove("vibe_translator_agent_runs");
+      storage.remove("vibe_translator_current_agent_run");
     }
   },
 
@@ -186,6 +207,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       const history = storage.get<HistoryItem[]>("vibe_translator_history") || [];
       const projects = storage.get<DesignProject[]>("vibe_translator_projects") || [];
       const currentProjectId = storage.get<string | null>("vibe_translator_current_project");
+      const agentRuns = storage.get<AgentRun[]>("vibe_translator_agent_runs") || [];
+      const currentAgentRunId = storage.get<string | null>("vibe_translator_current_agent_run");
 
       set({
         currentMode: mode,
@@ -196,6 +219,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         history,
         projects,
         currentProjectId,
+        agentRuns,
+        currentAgentRunId,
         isHydrated: true,
       });
     } catch (error) {
@@ -382,5 +407,80 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     }
 
     return md;
+  },
+
+  // Phase 5: Agent Workflow Actions
+
+  createAgentRun: (run: AgentRun) => {
+    set((state) => ({
+      agentRuns: [run, ...state.agentRuns].slice(0, 50),
+      currentAgentRunId: run.id,
+    }));
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_agent_runs", get().agentRuns);
+      storage.set("vibe_translator_current_agent_run", run.id);
+    }
+  },
+
+  updateAgentRun: (id: string, patch: Partial<AgentRun>) => {
+    set((state) => ({
+      agentRuns: state.agentRuns.map((r) =>
+        r.id === id ? { ...r, ...patch, updatedAt: new Date().toISOString() } : r
+      ),
+    }));
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_agent_runs", get().agentRuns);
+    }
+  },
+
+  setCurrentAgentRun: (id: string | null) => {
+    set({ currentAgentRunId: id });
+    if (typeof window !== "undefined") {
+      if (id) {
+        storage.set("vibe_translator_current_agent_run", id);
+      } else {
+        storage.remove("vibe_translator_current_agent_run");
+      }
+    }
+  },
+
+  addAgentEvent: (runId: string, event: AgentEvent) => {
+    set((state) => ({
+      agentRuns: state.agentRuns.map((r) =>
+        r.id === runId
+          ? { ...r, events: [...r.events, event], updatedAt: new Date().toISOString() }
+          : r
+      ),
+    }));
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_agent_runs", get().agentRuns);
+    }
+  },
+
+  updateAgentStep: (runId: string, stepId: string, patch: Partial<AgentStep>) => {
+    set((state) => ({
+      agentRuns: state.agentRuns.map((r) =>
+        r.id === runId
+          ? {
+              ...r,
+              steps: r.steps.map((s) =>
+                s.id === stepId ? { ...s, ...patch } : s
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      ),
+    }));
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_agent_runs", get().agentRuns);
+    }
+  },
+
+  clearAgentRuns: () => {
+    set({ agentRuns: [], currentAgentRunId: null });
+    if (typeof window !== "undefined") {
+      storage.remove("vibe_translator_agent_runs");
+      storage.remove("vibe_translator_current_agent_run");
+    }
   },
 }));

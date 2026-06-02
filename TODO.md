@@ -1,8 +1,8 @@
 # TODO - Vibe Design Translator
 
-## Version: Phase 4 Real AI Vision MVP
-**Last Updated**: 2026-05-31
-**Project Progress**: 85% → 90%
+## Version: Phase 5 Agent Workflow Foundation
+**Last Updated**: 2026-06-02
+**Project Progress**: 90% → 94%
 
 ---
 
@@ -16,7 +16,7 @@
 
 ---
 
-## P0 - Critical (Must Fix Before Phase 5)
+## P0 - Critical (Must Fix Before Phase 6)
 
 ### Engineering Stability
 
@@ -24,7 +24,7 @@
 - [x] TypeScript strict mode compliance
 - [x] ESLint passes
 - [x] localStorage hydration works without flicker
-- [x] All 13 pages route correctly (including 3 API routes)
+- [x] All 14 pages route correctly (including 3 API routes)
 
 ### Core User Flows
 
@@ -38,23 +38,38 @@
 - [x] Server-side AI API routes with mock fallback (Phase 4)
 - [x] GitHub Actions CI pipeline (Phase 4)
 
-### Phase 4 Completed
+### Phase 5 Completed
 
-- [x] 3 server-side API routes created (`/api/ai/diagnose-screenshot`, `/api/ai/generate-execution-pack`, `/api/ai/generate-refactor-prompt`)
-- [x] Diagnosis page refactored to call API routes
-- [x] API key security (server-side only, never exposed to client)
-- [x] Graceful fallback pattern (real AI → catch error → mock provider)
-- [x] Unified JSON response format (`ApiSuccess<T>` / `ApiError`)
-- [x] Token usage estimation & cost tracking metadata
-- [x] Error state display in Diagnosis page
-- [x] API metadata display in DiagnosisReportView (provider, fallback, tokens, cost)
-- [x] `.env.example` updated with comprehensive comments
-- [x] GitHub Actions CI workflow (`.github/workflows/ci.yml`)
-- [x] VisionProvider interface updated to support nullable screenshots
+- [x] AgentRun / AgentStep / AgentEvent 类型系统
+- [x] 7 个 Agent Skills (brief-interpreter, direction-planner, execution-pack-generator, prompt-compiler, vision-diagnosis, refactor-prompt-generator, project-exporter)
+- [x] Skill Registry (统一注册和获取)
+- [x] Workflow Orchestrator (设计翻译、页面诊断、重构 Prompt 三个工作流)
+- [x] Agent Workflow UI 组件 (AgentRunPanel, WorkflowTimeline, AgentStepCard, AgentProgressBar, ToolCallTrace, HumanApprovalGate, AgentEventLog)
+- [x] Agent Runs 页面 (/agent-runs)
+- [x] 顶部导航增加 "Agent 工作流" 入口
+- [x] Diagnosis 页面接入 Agent Workflow 模式
+- [x] Brief 页面接入 Agent Workflow 模式
+- [x] Workspace 页面显示 Agent Run 状态
+- [x] Zustand Store 新增 agentRuns 状态管理
+- [x] localStorage 持久化 Agent Runs
+- [x] 失败步骤支持重试
+- [x] 人工确认门控 (Human Approval Gate)
+- [x] docs/AGENT_WORKFLOW.md 文档
+- [x] README.md 更新到 Phase 5
 
 ---
 
 ## P1 - Important (Next Sprint)
+
+### Agent Workflow Enhancement
+
+- [ ] MCP tool adapter for external tools
+- [ ] Real background job queue
+- [ ] Persistent DB-backed workflow storage
+- [ ] Multi-agent role separation
+- [ ] Human approval policy configuration
+- [ ] Workflow replay / diff
+- [ ] Agent evaluation metrics
 
 ### AI API Integration
 
@@ -163,6 +178,23 @@
 
 ## Changelog
 
+### 2026-06-02 - Phase 5 Agent Workflow Foundation
+
+- **Agent Workflow Type System**: AgentRun, AgentStep, AgentEvent, AgentSkill, AgentContext
+- **Skill Registry**: 7 composable skills (brief-interpreter, direction-planner, execution-pack-generator, prompt-compiler, vision-diagnosis, refactor-prompt-generator, project-exporter)
+- **Workflow Orchestrator**: 3 standard workflows (Design Translation, Page Diagnosis, Refactor Prompt)
+- **Agent UI Components**: AgentRunPanel, WorkflowTimeline, AgentStepCard, AgentProgressBar, ToolCallTrace, HumanApprovalGate, AgentEventLog
+- **Agent Runs Page**: `/agent-runs` with run history, detail view, and clear functionality
+- **Navigation Update**: Added "Agent 工作流" to top navigation
+- **Diagnosis Integration**: Agent mode toggle in Diagnosis page
+- **Brief Integration**: Agent mode toggle in Brief page
+- **Workspace Integration**: Agent run status display in project cards
+- **Zustand Store**: agentRuns state with localStorage persistence
+- **Human Approval Gate**: Steps can require user confirmation
+- **Retry Failed Steps**: Support retrying failed workflow steps
+- **Documentation**: `docs/AGENT_WORKFLOW.md` with architecture, types, and workflows
+- All health checks pass: `npm run lint` ✓, `npx tsc --noEmit` ✓, `npm run build` ✓
+
 ### 2026-05-31 - Phase 4 Real AI Vision MVP
 
 - **Server-side AI API Routes**: 3 routes (`diagnose-screenshot`, `generate-execution-pack`, `generate-refactor-prompt`)
@@ -232,5 +264,5 @@ When adding features:
 
 ---
 
-**Last reviewed**: 2026-05-31
+**Last reviewed**: 2026-06-02
 **Next review**: Weekly

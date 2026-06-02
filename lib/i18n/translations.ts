@@ -13,6 +13,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     nav_home: "Home",
     nav_workspace: "Workspace",
     nav_patterns: "Patterns",
+    nav_agent_runs: "Agent Runs",
     nav_settings: "Settings",
     nav_back: "Back",
 
@@ -471,6 +472,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     nav_home: "首页",
     nav_workspace: "工作台",
     nav_patterns: "模式库",
+    nav_agent_runs: "Agent 工作流",
     nav_settings: "设置",
     nav_back: "返回",
 

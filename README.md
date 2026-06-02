@@ -368,7 +368,7 @@ flowchart LR
 
 ## 8. 系统架构
 
-当前架构采用 **Next.js App Router + Zustand + localStorage + Provider Abstraction**。
+当前架构采用 **Next.js App Router + Zustand + localStorage + Provider Abstraction + Agent Workflow Layer**。
 
 ```mermaid
 flowchart TD
@@ -397,6 +397,7 @@ flowchart TD
     D --> D3[Diagnosis Logic]
     D --> D4[Design Patterns]
     D --> D5[AI Connectors]
+    D --> D6[Agent Workflow Layer]
 
     E --> E1[Zustand Store]
     E1 --> E2[localStorage]
@@ -404,7 +405,47 @@ flowchart TD
 
 ---
 
-### 8.1 AI Provider 架构
+### 8.1 Agent Workflow Layer
+
+Phase 5 新增的 Agent Workflow Layer，让设计决策过程变得可视化、可审计、可恢复。
+
+```mermaid
+flowchart TD
+    A[Design Brief] --> B[Agent Run]
+    B --> C[Skill Registry]
+    C --> D[Brief Interpreter]
+    C --> E[Direction Planner]
+    C --> F[Execution Pack Generator]
+    C --> G[Prompt Compiler]
+    C --> H[Vision Diagnosis]
+    C --> I[Refactor Prompt Generator]
+
+    D --> J[Design Translation Workflow]
+    E --> J
+    F --> J
+    G --> J
+
+    H --> K[Diagnosis Workflow]
+    I --> K
+
+    J --> L[Agent Runs Page]
+    K --> L
+```
+
+**核心能力：**
+- AgentRun / AgentStep / AgentEvent 类型系统
+- 7 个可组合的 Agent Skills
+- 3 个标准工作流（设计翻译、页面诊断、重构 Prompt）
+- Workflow Orchestrator（Plan → Execute → Verify）
+- Agent Workflow UI 组件（进度条、时间线、事件日志）
+- 人工确认门控（Human Approval Gate）
+- 失败步骤重试
+
+详见 [Agent Workflow Documentation](./docs/AGENT_WORKFLOW.md)
+
+---
+
+### 8.2 AI Provider 架构
 
 项目已经预留真实 AI 接入层，目前默认走 Mock Provider。
 
@@ -600,7 +641,7 @@ AI Prompt Editor Panel
 
 ## 14. 当前版本进度
 
-当前版本：**Phase 3 AI Diagnosis Foundation**
+当前版本：**Phase 5 Agent Workflow Foundation**
 
 | 模块 | 状态 |
 |---|---|
@@ -615,14 +656,21 @@ AI Prompt Editor Panel
 | Project Workspace CRUD | Complete |
 | AI Provider Abstraction | Complete |
 | Real AI Vision Diagnosis | Prepared, not fully enabled |
+| Agent Workflow Type System | Complete |
+| Agent Skill Registry | Complete |
+| Workflow Orchestrator | Complete |
+| Agent Workflow UI | Complete |
+| Agent Runs Page | Complete |
+| Diagnosis Workflow Integration | Complete |
+| Design Translation Workflow Integration | Complete |
 | Auth / Database / Billing | Future |
 
 ### 当前完成度
 
 ```text
-作品集展示完成度：88%
-工程 MVP 完成度：85%
-真实 AI SaaS 完成度：45%
+作品集展示完成度：92%
+工程 MVP 完成度：90%
+真实 AI SaaS 完成度：50%
 商业化产品完成度：35%
 ```
 
@@ -663,20 +711,20 @@ flowchart LR
     A[Phase 1<br/>Engineering MVP] --> B[Phase 2<br/>Design Decision System]
     B --> C[Phase 3<br/>AI Diagnosis Foundation]
     C --> D[Phase 4<br/>Real AI Vision MVP]
-    D --> E[Phase 5<br/>Auth + Cloud Workspace]
-    E --> F[Phase 6<br/>Billing + Usage Quota]
-    F --> G[Phase 7<br/>Team + Brand Memory]
-    G --> H[Phase 8<br/>API / MCP]
+    D --> E[Phase 5<br/>Agent Workflow Foundation]
+    E --> F[Phase 6<br/>Auth + Cloud Workspace]
+    F --> G[Phase 7<br/>Billing + Usage Quota]
+    G --> H[Phase 8<br/>Team + Brand Memory]
 ```
 
 ### 下一阶段重点
 
 | 阶段 | 目标 |
 |---|---|
-| Phase 4 | 接入真实 Vision Diagnosis |
-| Phase 5 | Supabase Auth + Database + Storage |
-| Phase 6 | 使用额度、订阅、支付 |
-| Phase 7 | 团队空间、品牌记忆、私有 Pattern Library |
+| Phase 5 | Agent Workflow Foundation (Current) |
+| Phase 6 | Supabase Auth + Database + Storage |
+| Phase 7 | 使用额度、订阅、支付 |
+| Phase 8 | 团队空间、品牌记忆、私有 Pattern Library |
 | Phase 8 | API / MCP，接入 AI Coding 工具链 |
 
 ---
