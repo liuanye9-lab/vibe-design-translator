@@ -1,11 +1,17 @@
 // ============================================================
 // Test Mimo API Connection
 // ============================================================
-// Run: npx tsx scripts/test-mimo.ts
+// Run: MIMO_API_KEY=your_key npx tsx scripts/test-mimo.ts
 
-const MIMO_API_BASE = "https://token-plan-cn.xiaomimimo.com/v1";
-const MIMO_API_KEY = "tp-ckrfbwn447mrqr9o6yg18ba8pygk81m2f1jo80jghexk1uhh";
-const MIMO_MODEL = "mimo-v2.5-pro";
+const MIMO_API_BASE = process.env.MIMO_API_BASE || "https://token-plan-cn.xiaomimimo.com/v1";
+const MIMO_API_KEY = process.env.MIMO_API_KEY || "";
+const MIMO_MODEL = process.env.MIMO_MODEL || "mimo-v2.5-pro";
+
+if (!MIMO_API_KEY) {
+  console.error("❌ MIMO_API_KEY environment variable is required");
+  console.error("Usage: MIMO_API_KEY=your_key npx tsx scripts/test-mimo.ts");
+  process.exit(1);
+}
 
 async function testMimoAPI() {
   console.log("🧪 Testing Mimo API Connection...");
