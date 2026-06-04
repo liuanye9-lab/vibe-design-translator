@@ -14,6 +14,7 @@ import { LiquidButton } from "@/components/ui/liquid-button";
 import { getScoreLabel, cn } from "@/lib/utils";
 import { AlertTriangle, CheckCircle, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { DiagnosisBeforeAfter } from "@/components/visuals/diagnosis-before-after";
 
 interface DiagnosisReportViewProps {
   report: DiagnosisReport;
@@ -164,6 +165,21 @@ export function DiagnosisReportView({
               </li>
             ))}
           </ul>
+        </GlassCardContent>
+      </GlassCard>
+
+      {/* Before/After Visualization */}
+      <GlassCard>
+        <GlassCardHeader>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            Before / After 可视化
+          </h3>
+        </GlassCardHeader>
+        <GlassCardContent>
+          <DiagnosisBeforeAfter
+            findings={report.findings}
+            fixes={report.fixes}
+          />
         </GlassCardContent>
       </GlassCard>
 

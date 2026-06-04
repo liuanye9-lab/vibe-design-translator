@@ -67,9 +67,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get configured vision provider
+    // getVisionDiagnosisProvider() already handles env vars and returns mock if not enabled
     const provider = getVisionDiagnosisProvider();
-    const configuredProvider = process.env.NEXT_PUBLIC_AI_PROVIDER || "mock";
-    const enableRealAI = process.env.NEXT_PUBLIC_ENABLE_REAL_AI === "true";
+    const configuredProvider = process.env.AI_PROVIDER || "mock";
+    const isRealAI = configuredProvider !== "mock" && process.env.ENABLE_REAL_AI === "true";
 
     let report: DiagnosisReport;
     let fallback = false;
@@ -77,18 +78,16 @@ export async function POST(request: NextRequest) {
     let estimatedCost = "$0.00";
 
     try {
-      // Attempt real AI diagnosis if enabled
-      if (enableRealAI && configuredProvider !== "mock") {
-        report = await provider.diagnoseScreenshot(screenshot, pageType, painPoints);
+      // Attempt real AI diagnosis
+      report = await provider.diagnoseScreenshot(screenshot, pageType, painPoints);
 
-        // Estimate tokens (rough: ~2000 input tokens for prompt + ~500 for image)
-        tokensUsed = screenshot ? 2500 : 2000;
-        // Rough cost estimation: ~$0.01 per 1K tokens for vision models
-        estimatedCost = `$${(tokensUsed / 1000 * 0.01).toFixed(3)}`;
-      } else {
-        // Fallback to mock provider
+      // Check if we're using mock (either by config or because provider returned mock)
+      if (!isRealAI) {
         fallback = true;
-        report = await mockProvider.diagnoseScreenshot(screenshot, pageType, painPoints);
+      } else {
+        // Estimate tokens for real AI calls
+        tokensUsed = screenshot ? 2500 : 2000;
+        estimatedCost = `$${(tokensUsed / 1000 * 0.01).toFixed(3)}`;
       }
     } catch (aiError) {
       // Graceful fallback to mock when AI fails

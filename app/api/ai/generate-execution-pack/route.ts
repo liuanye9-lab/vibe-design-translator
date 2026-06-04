@@ -64,9 +64,10 @@ export async function POST(request: NextRequest) {
     const directionId: string = body.directionId;
 
     // Get configured AI provider
+    // getDesignAIProvider() already handles env vars and returns mock if not enabled
     const provider = getDesignAIProvider();
-    const configuredProvider = process.env.NEXT_PUBLIC_AI_PROVIDER || "mock";
-    const enableRealAI = process.env.NEXT_PUBLIC_ENABLE_REAL_AI === "true";
+    const configuredProvider = process.env.AI_PROVIDER || "mock";
+    const isRealAI = configuredProvider !== "mock" && process.env.ENABLE_REAL_AI === "true";
 
     let pack: DesignExecutionPack;
     let fallback = false;
@@ -74,16 +75,16 @@ export async function POST(request: NextRequest) {
     let estimatedCost = "$0.00";
 
     try {
-      // Attempt real AI generation if enabled
-      if (enableRealAI && configuredProvider !== "mock") {
-        pack = await provider.generateExecutionPack(brief, directionId);
+      // Attempt AI generation
+      pack = await provider.generateExecutionPack(brief, directionId);
 
-        // Estimate tokens (rough: ~3000 input + ~2000 output for full pack)
+      // Check if we're using mock
+      if (!isRealAI) {
+        fallback = true;
+      } else {
+        // Estimate tokens for real AI calls
         tokensUsed = 5000;
         estimatedCost = `$${(tokensUsed / 1000 * 0.01).toFixed(3)}`;
-      } else {
-        fallback = true;
-        pack = await mockProvider.generateExecutionPack(brief, directionId);
       }
     } catch (aiError) {
       // Graceful fallback to mock when AI fails

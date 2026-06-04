@@ -7,7 +7,7 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwindcss)
 ![Zustand](https://img.shields.io/badge/State-Zustand-2D3748?style=flat-square)
 ![AI Ready](https://img.shields.io/badge/AI-Provider%20Ready-purple?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Phase%205%20Agent%20Workflow-brightgreen?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Phase%205%20Real%20AI%20+%20Visual%20Agent%20Workflow-brightgreen?style=flat-square)
 
 ---
 
@@ -425,6 +425,7 @@ npm install
 ```bash
 cp .env.example .env.local
 # 编辑 .env.local，填入你的 API Key
+# 注意：所有环境变量都是服务端变量，不会暴露到客户端
 ```
 
 ### 4. 启动开发
@@ -436,6 +437,151 @@ npm run dev
 ### 5. 打开浏览器
 
 访问 http://localhost:3000
+
+---
+
+## 核心功能详解
+
+### 1. 真实 AI Provider
+
+项目支持多个 AI Provider，默认使用 Mock Provider（零配置即可运行）。
+
+```mermaid
+graph LR
+    A[用户请求] --> B{AI Provider}
+    B -->|ENABLE_REAL_AI=true| C[Gemini]
+    B -->|ENABLE_REAL_AI=true| D[OpenAI]
+    B -->|ENABLE_REAL_AI=true| E[Claude]
+    B -->|ENABLE_REAL_AI=true| F[Mimo]
+    B -->|默认| G[Mock]
+    
+    C --> H[诊断报告]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+```
+
+**支持的 Provider：**
+- **Gemini**：Google Gemini 1.5 Flash，支持视觉诊断
+- **OpenAI**：GPT-4o，支持视觉诊断
+- **Claude**：Claude 3.5 Sonnet，仅文本
+- **Mimo**：小米 Mimo v2.5 Pro，支持视觉诊断
+- **Mock**：本地模拟，零配置
+
+### 2. Visual Content System
+
+6 个原创可视化组件，不使用外部图片：
+
+| 组件 | 功能 | 用途 |
+|------|------|------|
+| `VisualDirectionPreview` | 设计方向视觉预览 | /directions 页面 |
+| `DesignPatternPreview` | 设计模式缩略图 | /patterns 页面 |
+| `LayoutThumbnail` | 页面结构缩略图 | /pack 页面 |
+| `DiagnosisBeforeAfter` | 诊断前后对比 | /diagnosis 页面 |
+| `ColorSystemStrip` | 色彩系统展示 | /pack 页面 |
+| `InteractionFlowPreview` | 交互流程预览 | /pack 页面 |
+
+### 3. Agent Workflow Layer
+
+受 OpenClaw 和 Claude Code 启发的可组合 Skill + Orchestrator 架构：
+
+```mermaid
+graph TD
+    A[用户启动工作流] --> B[Orchestrator]
+    B --> C[Skill Registry]
+    C --> D[Brief Interpreter]
+    C --> E[Direction Planner]
+    C --> F[Execution Pack Generator]
+    C --> G[Prompt Compiler]
+    C --> H[Vision Diagnosis]
+    C --> I[Refactor Prompt Generator]
+    C --> J[Project Exporter]
+    
+    D --> K[AgentRun]
+    E --> K
+    F --> K
+    G --> K
+    H --> K
+    I --> K
+    J --> K
+```
+
+### 4. 诊断工作流程
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant D as Diagnosis Page
+    participant A as API Route
+    participant P as Provider
+    participant M as Mock Provider
+    
+    U->>D: 上传截图 + 填写表单
+    D->>A: POST /api/ai/diagnose-screenshot
+    A->>P: 调用配置的 Provider
+    
+    alt Provider 成功
+        P-->>A: 返回诊断报告
+    else Provider 失败
+        P-->>A: 抛出错误
+        A->>M: Fallback 到 Mock
+        M-->>A: 返回 Mock 报告
+    end
+    
+    A-->>D: 返回报告 + meta
+    D-->>U: 展示报告 + 可视化
+```
+
+### 5. Fallback 机制
+
+所有 API 路由都有优雅降级机制：
+
+1. **启用真实 AI**：`ENABLE_REAL_AI=true`
+2. **调用 Provider**：尝试调用配置的 Provider
+3. **失败处理**：如果 Provider 失败，自动回退到 Mock
+4. **元数据记录**：记录 `fallback: true` 和 Provider 信息
+5. **用户提示**：前端显示 "已切换到本地模拟诊断"
+
+### 6. 质量评估系统
+
+每次 Agent 工作流完成后，自动运行质量评估。评估器基于规则化评分，从 6 个维度检查输出质量：
+
+| 维度 | 说明 | 权重 |
+|------|------|------|
+| 完整性 | 必要字段是否齐全 | 20-25% |
+| 具体性 | 建议是否具体、可操作 | 15-20% |
+| 可执行性 | 是否包含验收标准和构建验证 | 20-25% |
+| 工具适配 | Prompt 是否匹配目标工具特性 | 10-15% |
+| 反 AI 感 | 是否强调避免模板化设计 | 10-15% |
+| 风险控制 | 是否考虑响应式、无障碍等 | 10-15% |
+
+**评估对象：**
+- `evaluateExecutionPack()` — 评估 Design Execution Pack
+- `evaluateDiagnosisReport()` — 评估诊断报告
+- `evaluatePromptQuality()` — 评估工具专用 Prompt
+
+**通过阈值：** 70 分。低于 70 分时 UI 显示质量警告并提供改进建议。
+
+### 7. 启用 Gemini API
+
+详细配置指南请参考 [docs/REAL_AI_SETUP.md](./docs/REAL_AI_SETUP.md)
+
+快速开始：
+
+```bash
+# 1. 复制环境变量
+cp .env.example .env.local
+
+# 2. 编辑 .env.local
+AI_PROVIDER=gemini
+ENABLE_REAL_AI=true
+ENABLE_VISION_DIAGNOSIS=true
+GEMINI_API_KEY=your_api_key_here
+
+# 3. 启动开发服务器
+npm run dev
+```
 
 ---
 
@@ -466,6 +612,11 @@ vibe-design-translator/
 │   │   ├── skill-registry.ts # 技能注册中心
 │   │   └── skills/        # 7个技能模块
 │   ├── connectors/        # AI 供应商
+│   ├── evaluators/        # 质量评估器
+│   │   ├── types.ts       # 评估类型定义
+│   │   ├── execution-pack-evaluator.ts
+│   │   ├── diagnosis-evaluator.ts
+│   │   └── prompt-quality-evaluator.ts
 │   └── diagnosis.ts       # 诊断逻辑
 │
 └── docs/                  # 文档
@@ -478,21 +629,28 @@ vibe-design-translator/
 
 ```mermaid
 pie title 项目完成度
-    "已完成" : 94
-    "进行中" : 4
-    "待开发" : 2
+    "已完成" : 97
+    "进行中" : 2
+    "待开发" : 1
 ```
 
-### Phase 5 Agent Workflow Foundation ✅
+### Phase 5 Real AI + Visual Agent Workflow MVP ✅
 
-- ✅ Agent 类型系统
-- ✅ 7 个 Agent Skills
-- ✅ Skill Registry
-- ✅ Workflow Orchestrator
-- ✅ Agent UI 组件
-- ✅ Agent Runs 页面
-- ✅ Brief/Diagnosis 集成
-- ✅ Mimo API 集成
+- ✅ 真实 Gemini Vision Provider
+- ✅ 真实 AI Execution Pack 生成
+- ✅ 真实 Refactor Prompt 生成
+- ✅ Visual Content System（6 个可视化组件）
+- ✅ Agent Workflow Layer（7 个 Skills）
+- ✅ Agent UI 组件（AgentRunPanel 等）
+- ✅ 诊断前后对比可视化
+- ✅ 设计方向视觉预览
+- ✅ 设计模式缩略图
+- ✅ 色彩系统展示
+- ✅ 交互流程预览
+- ✅ 页面结构缩略图
+- ✅ 质量评估系统（3 个评估器，6 个维度）
+- ✅ EvaluationResultCard UI 组件
+- ✅ DiagnosisReport beforeAfter 字段
 
 ---
 
@@ -587,9 +745,9 @@ MIT License
 
 ## 当前版本
 
-**Phase 5 Agent Workflow Foundation**
+**Phase 5 Real AI + Visual Agent Workflow MVP**
 
-> 从「设计决策工具」升级为「Agent 化设计决策工作流系统」
+> 从「API-ready Demo」升级为「真实 AI + 可视化内容 + Agent 工作流 MVP」
 
 ---
 

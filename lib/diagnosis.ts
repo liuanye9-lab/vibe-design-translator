@@ -38,16 +38,17 @@ export function generateMockDiagnosisReport(
     scores,
     findings,
     fixes,
-    refactorPrompts: generateRefactorPrompts({ 
-      overallScore, 
-      scores, 
-      findings, 
+    refactorPrompts: generateRefactorPrompts({
+      overallScore,
+      scores,
+      findings,
       fixes,
       pageType,
       primaryPainPoint,
     }),
     detailedFindings,
     repairStrategy,
+    beforeAfter: generateBeforeAfter(scores, pageType),
     pageType,
     primaryPainPoint,
   };
@@ -593,6 +594,76 @@ ${generateAntiAILookChecklist().map((r) => `- [ ] ${r}`).join("\n")}
 
 **重要提醒**：目标是让人感觉是精心手工设计的，不是批量生成的。`,
   };
+}
+
+// ============================================================
+// Before/After Comparison Generator
+// ============================================================
+
+function generateBeforeAfter(
+  scores: DiagnosisScores,
+  pageType?: string
+): Array<{ before: string; after: string }> {
+  const items: Array<{ before: string; after: string }> = [];
+
+  if (scores.aiTemplateFeeling < 60) {
+    items.push({
+      before: "使用通用渐变背景 + 居中堆叠布局，看起来像批量生产的 SaaS 模板",
+      after: "采用品牌定制色系 + 非对称布局，通过独特的视觉语言建立品牌辨识度",
+    });
+  }
+
+  if (scores.visualHierarchy < 65) {
+    items.push({
+      before: "所有标题大小相近，CTA 按钮淹没在内容中，用户不知道该看哪里",
+      after: "建立 3:1 标题比例层级，主 CTA 使用高对比色 + 大尺寸，形成清晰的视觉路径",
+    });
+  }
+
+  if (scores.colorControl < 65) {
+    items.push({
+      before: "使用 5+ 种强调色，色彩随机分布，缺乏系统性思考",
+      after: "精简为 1-2 个品牌强调色，配合 5-7 级中性色阶，色彩使用有明确规则",
+    });
+  }
+
+  if (scores.typographySystem < 70) {
+    items.push({
+      before: "字体粗细随意混用，行高不一致，标题和正文缺乏层级关系",
+      after: "定义 3-4 级字体层级，统一行高规范，粗细使用有明确语义",
+    });
+  }
+
+  if (scores.spacingSystem < 65) {
+    items.push({
+      before: "所有区块使用相同间距，缺乏节奏感，内容主次不分",
+      after: "基于 8px 网格建立间距系统，重要区块使用更大留白，形成视觉呼吸感",
+    });
+  }
+
+  if (scores.interactionRestraint < 60) {
+    items.push({
+      before: "页面充斥着夸张的渐入动画和 hover 特效，分散用户注意力",
+      after: "精简为 150-250ms 微交互，仅在关键操作点使用动效引导，尊重 prefers-reduced-motion",
+    });
+  }
+
+  if (scores.conversionClarity < 65) {
+    items.push({
+      before: "CTA 按钮位置不突出，缺乏信任标识，用户转化路径模糊",
+      after: "CTA 放置在首屏高权重位置，配合社会证明和信任标识，形成清晰的转化漏斗",
+    });
+  }
+
+  // Ensure at least one before/after
+  if (items.length === 0) {
+    items.push({
+      before: "页面整体设计中规中矩，缺乏独特的品牌个性和视觉记忆点",
+      after: "通过精细化的设计细节（微交互、色彩节奏、排版韵律）提升页面品质感和品牌辨识度",
+    });
+  }
+
+  return items;
 }
 
 // ============================================================

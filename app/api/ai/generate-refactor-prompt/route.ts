@@ -62,10 +62,26 @@ export async function POST(request: NextRequest) {
     const diagnosisFindings: string[] = body.diagnosisFindings;
     const targetTool: string = body.targetTool || "claude-code";
 
+    // Validate targetTool
+    const validTools = ["codex", "claude-code", "gemini", "workbuddy"];
+    if (!validTools.includes(targetTool)) {
+      return NextResponse.json<ApiError>(
+        {
+          success: false,
+          error: {
+            code: "INVALID_TOOL",
+            message: `Invalid targetTool: ${targetTool}. Must be one of: ${validTools.join(", ")}`,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     // Get configured AI provider
+    // getDesignAIProvider() already handles env vars and returns mock if not enabled
     const provider = getDesignAIProvider();
-    const configuredProvider = process.env.NEXT_PUBLIC_AI_PROVIDER || "mock";
-    const enableRealAI = process.env.NEXT_PUBLIC_ENABLE_REAL_AI === "true";
+    const configuredProvider = process.env.AI_PROVIDER || "mock";
+    const isRealAI = configuredProvider !== "mock" && process.env.ENABLE_REAL_AI === "true";
 
     let prompt: string;
     let fallback = false;
@@ -73,16 +89,16 @@ export async function POST(request: NextRequest) {
     let estimatedCost = "$0.00";
 
     try {
-      // Attempt real AI generation if enabled
-      if (enableRealAI && configuredProvider !== "mock") {
-        prompt = await provider.generateRefactorPrompt(diagnosisFindings, targetTool);
+      // Attempt AI generation
+      prompt = await provider.generateRefactorPrompt(diagnosisFindings, targetTool);
 
-        // Estimate tokens (rough: ~1000 input + ~500 output)
+      // Check if we're using mock
+      if (!isRealAI) {
+        fallback = true;
+      } else {
+        // Estimate tokens for real AI calls
         tokensUsed = 1500;
         estimatedCost = `$${(tokensUsed / 1000 * 0.01).toFixed(3)}`;
-      } else {
-        fallback = true;
-        prompt = await mockProvider.generateRefactorPrompt(diagnosisFindings, targetTool);
       }
     } catch (aiError) {
       // Graceful fallback to mock when AI fails

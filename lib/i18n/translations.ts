@@ -435,7 +435,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     feat_basic_direction: "Basic direction generator",
     feat_3_exports: "3 prompt exports / month",
     feat_unlimited_exports: "Unlimited prompt exports",
-   _feat_all_tools: "All AI tool support",
+    feat_all_tools: "All AI tool support",
     feat_local_storage: "localStorage persistence",
     feat_full_library: "Full pattern library",
     feat_export_json: "Export as JSON / Markdown",

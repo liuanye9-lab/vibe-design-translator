@@ -117,6 +117,7 @@ Return a JSON object with these fields:
 - interactionSystem: string[] (interaction rules)
 - acceptanceCriteria: string[] (acceptance criteria)
 - antiAILookChecklist: string[] (anti-AI-look checks)
+- prompts: object with keys "codex", "claude-code", "gemini", "workbuddy" containing tool-specific prompts
 
 Return ONLY valid JSON, no markdown.`;
 
@@ -141,6 +142,15 @@ Main CTA: ${brief.mainCTA}`;
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Generate prompts if not provided by AI
+        const prompts = parsed.prompts || {
+          codex: `Implement the following design for ${brief.productName}:\n\nDirection: ${directionId}\n\n${(parsed.strategy || []).join("\n")}`,
+          "claude-code": `# Design Implementation for ${brief.productName}\n\n## Direction: ${directionId}\n\n## Strategy\n${(parsed.strategy || []).map((s: string) => `- ${s}`).join("\n")}\n\n## Visual System\n${(parsed.visualSystem || []).map((v: string) => `- ${v}`).join("\n")}`,
+          gemini: `Generate a ${brief.productName} page with ${directionId} design direction.\n\nKey rules:\n${(parsed.visualSystem || []).slice(0, 3).join("\n")}`,
+          workbuddy: `为 ${brief.productName} 实现 ${directionId} 设计方向\n\n策略要点：\n${(parsed.strategy || []).map((s: string) => `- ${s}`).join("\n")}`,
+        };
+        
         return {
           strategy: parsed.strategy || [],
           pageStructure: parsed.pageStructure || [],
@@ -148,12 +158,7 @@ Main CTA: ${brief.mainCTA}`;
           interactionSystem: parsed.interactionSystem || [],
           acceptanceCriteria: parsed.acceptanceCriteria || [],
           antiAILookChecklist: parsed.antiAILookChecklist || [],
-          prompts: {
-            codex: "",
-            "claude-code": "",
-            gemini: "",
-            workbuddy: "",
-          },
+          prompts,
           productName: brief.productName,
           productCategory: brief.productCategory,
           selectedDirection: directionId,
@@ -197,7 +202,9 @@ Generate a refactor prompt for ${targetTool} that fixes these issues.`;
     painPoints?: string
   ): Promise<DiagnosisReport> {
     const systemPrompt = `You are a UI/UX design diagnosis expert.
-Analyze the page and provide a detailed diagnosis report.
+Analyze the page description and provide a detailed diagnosis report.
+
+Note: Mimo API does not support image input. Analysis is based on text description only.
 
 Return a JSON object with:
 - overallScore: number (0-100)
@@ -220,7 +227,7 @@ Return ONLY valid JSON, no markdown.`;
       userPrompt += `\nPain Points: ${painPoints}`;
     }
     if (screenshot) {
-      userPrompt += `\n[Screenshot provided - analyze the visual design]`;
+      userPrompt += `\nNote: Screenshot was provided but cannot be analyzed via text-only API. Analysis is based on the text description above.`;
     }
 
     const content = await this.chatCompletion(
@@ -235,6 +242,17 @@ Return ONLY valid JSON, no markdown.`;
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Generate refactor prompts
+        const findings = parsed.findings || [];
+        const fixes = parsed.fixes || [];
+        const refactorPrompts = {
+          codex: `Fix the following UI issues:\n${findings.map((f: string) => `- ${f}`).join("\n")}\n\nSuggested fixes:\n${fixes.map((f: string) => `- ${f}`).join("\n")}`,
+          "claude-code": `# UI Refactoring Task\n\n## Issues Found\n${findings.map((f: string) => `- ${f}`).join("\n")}\n\n## Suggested Fixes\n${fixes.map((f: string) => `- ${f}`).join("\n")}`,
+          gemini: `Refactor the UI to fix these issues:\n${findings.slice(0, 3).join("\n")}`,
+          workbuddy: `修复以下 UI 问题：\n${findings.map((f: string) => `- ${f}`).join("\n")}\n\n建议修复：\n${fixes.map((f: string) => `- ${f}`).join("\n")}`,
+        };
+        
         return {
           overallScore: parsed.overallScore || 50,
           scores: parsed.scores || {
@@ -246,16 +264,11 @@ Return ONLY valid JSON, no markdown.`;
             interactionRestraint: 50,
             conversionClarity: 50,
           },
-          findings: parsed.findings || [],
-          fixes: parsed.fixes || [],
-          refactorPrompts: {
-            codex: "",
-            "claude-code": "",
-            gemini: "",
-            workbuddy: "",
-          },
-          screenshotAnalyzed: !!screenshot,
-          confidence: screenshot ? "high" : "medium",
+          findings,
+          fixes,
+          refactorPrompts,
+          screenshotAnalyzed: false, // Mimo cannot analyze images
+          confidence: "low", // Lower confidence for text-only analysis
         };
       }
       throw new Error("No JSON found in response");

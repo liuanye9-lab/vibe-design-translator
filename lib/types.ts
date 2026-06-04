@@ -197,6 +197,12 @@ export interface DiagnosisReport {
   // Phase 3 fields
   screenshotAnalyzed?: boolean;
   confidence?: "low" | "medium" | "high";
+
+  // Phase 5: Before/After comparison
+  beforeAfter?: Array<{
+    before: string;
+    after: string;
+  }>;
 }
 
 export interface DiagnosisInput {

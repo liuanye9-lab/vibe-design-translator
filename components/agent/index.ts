@@ -9,3 +9,4 @@ export { AgentStepCard } from "./agent-step-card";
 export { ToolCallTrace } from "./tool-call-trace";
 export { HumanApprovalGate } from "./human-approval-gate";
 export { AgentEventLog } from "./agent-event-log";
+export { EvaluationResultCard } from "./evaluation-result-card";

@@ -12,15 +12,16 @@ import { claudeProvider } from "./claude-provider";
 import { geminiProvider } from "./gemini-provider";
 import { mimoProvider } from "./mimo-provider";
 
-const DESIGN_AI_PROVIDER = process.env.NEXT_PUBLIC_AI_PROVIDER || "mock";
-const ENABLE_REAL_AI = process.env.NEXT_PUBLIC_ENABLE_REAL_AI === "true";
-
 export function getDesignAIProvider(): AIProvider {
-  if (!ENABLE_REAL_AI) {
+  // Read env at call time to avoid module-level evaluation issues
+  const provider = process.env.AI_PROVIDER || "mock";
+  const enableRealAI = process.env.ENABLE_REAL_AI === "true";
+  
+  if (!enableRealAI) {
     return mockProvider;
   }
 
-  switch (DESIGN_AI_PROVIDER) {
+  switch (provider) {
     case "openai":
       return openaiProvider;
     case "claude":
@@ -36,11 +37,16 @@ export function getDesignAIProvider(): AIProvider {
 }
 
 export function getVisionDiagnosisProvider(): VisionProvider {
-  if (!ENABLE_REAL_AI) {
+  // Read env at call time to avoid module-level evaluation issues
+  const provider = process.env.AI_PROVIDER || "mock";
+  const enableRealAI = process.env.ENABLE_REAL_AI === "true";
+  const enableVisionDiagnosis = process.env.ENABLE_VISION_DIAGNOSIS === "true";
+  
+  if (!enableRealAI || !enableVisionDiagnosis) {
     return mockProvider;
   }
 
-  switch (DESIGN_AI_PROVIDER) {
+  switch (provider) {
     case "openai":
       return openaiProvider;
     case "gemini":

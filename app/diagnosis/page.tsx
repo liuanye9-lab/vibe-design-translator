@@ -19,9 +19,10 @@ import { useI18n } from "@/lib/i18n/use-i18n";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Image as ImageIcon, AlertTriangle, Workflow } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AgentRunPanel } from "@/components/agent";
+import { AgentRunPanel, EvaluationResultCard } from "@/components/agent";
 import { runDiagnosisWorkflow } from "@/lib/agent/orchestrator";
 import type { AgentRun } from "@/lib/agent/types";
+import type { EvaluationResult } from "@/lib/evaluators/types";
 
 // API response types
 interface ApiSuccess<T> {
@@ -83,6 +84,7 @@ export default function DiagnosisPage() {
   // Agent workflow state
   const [useAgentMode, setUseAgentMode] = useState(false);
   const [agentRun, setAgentRun] = useState<AgentRun | null>(null);
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
 
   // Hydrate store from localStorage on mount
   useEffect(() => {
@@ -134,12 +136,17 @@ export default function DiagnosisPage() {
 
       // Extract report from run result
       if (run.result && typeof run.result === "object" && "report" in run.result) {
-        const diagReport = (run.result as { report: DiagnosisReport }).report;
+        const resultObj = run.result as { report: DiagnosisReport; evaluation?: { diagnosis?: EvaluationResult } };
+        const diagReport = resultObj.report;
         setReport(diagReport);
         setDiagnosisReport(diagReport);
         addHistory({ type: "diagnosis_performed", data });
         if (currentProjectId) {
           addDiagnosisToProject(diagReport as Parameters<typeof addDiagnosisToProject>[0]);
+        }
+        // Extract evaluation result
+        if (resultObj.evaluation?.diagnosis) {
+          setEvaluationResult(resultObj.evaluation.diagnosis);
         }
       }
     } catch (err) {
@@ -214,6 +221,8 @@ export default function DiagnosisPage() {
     setDiagnosisReport(null);
     setScreenshot(null);
     setFormData(null);
+    setEvaluationResult(null);
+    setAgentRun(null);
   };
 
   return (
@@ -336,13 +345,22 @@ export default function DiagnosisPage() {
               )}
             </div>
           ) : (
-            <DiagnosisReportView
-              report={report}
-              selectedTool={selectedTool}
-              onToolChange={setSelectedTool}
-              onStartNew={handleStartNew}
-              apiMeta={apiMeta}
-            />
+            <>
+              {/* Evaluation Result (from Agent workflow) */}
+              {evaluationResult && (
+                <div className="mb-6">
+                  <EvaluationResultCard evaluation={evaluationResult} />
+                </div>
+              )}
+
+              <DiagnosisReportView
+                report={report}
+                selectedTool={selectedTool}
+                onToolChange={setSelectedTool}
+                onStartNew={handleStartNew}
+                apiMeta={apiMeta}
+              />
+            </>
           )}
         </PageContainer>
       </PageWrapper>

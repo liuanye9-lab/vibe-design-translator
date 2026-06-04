@@ -9,6 +9,7 @@ import { DesignDirection } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Check, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
+import { VisualDirectionPreview } from "@/components/visuals/visual-direction-preview";
 
 interface DirectionCardProps {
   direction: DesignDirection;
@@ -52,9 +53,18 @@ export function DirectionCard({
       </div>
 
       {/* Description */}
-      <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed mb-6">
+      <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed mb-4">
         {direction.description}
       </p>
+
+      {/* Visual Preview */}
+      <div className="mb-6">
+        <VisualDirectionPreview
+          directionId={direction.id}
+          title="视觉预览"
+          className="border border-[var(--color-border)]"
+        />
+      </div>
 
       {/* Suitable for */}
       <div className="mb-4">

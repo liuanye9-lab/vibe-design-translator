@@ -9,6 +9,9 @@ import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/gl
 import { CopyButton } from "@/components/ui/copy-button";
 import { CheckCircle, AlertTriangle, Target, Layout, Eye, Zap, Shield, Terminal } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
+import { ColorSystemStrip } from "@/components/visuals/color-system-strip";
+import { LayoutThumbnail } from "@/components/visuals/layout-thumbnail";
+import { InteractionFlowPreview } from "@/components/visuals/interaction-flow-preview";
 
 interface ExecutionPackSectionProps {
   pack: {
@@ -73,6 +76,40 @@ export function ExecutionPackSection({ pack, className }: ExecutionPackSectionPr
                   </li>
                 ))}
               </ul>
+
+              {/* Visual previews */}
+              {section.key === "visualSystem" && (
+                <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
+                  <ColorSystemStrip
+                    directionId="calm-professional"
+                    title="色彩系统预览"
+                    explanation="基于选定设计方向的色彩系统"
+                    className="mb-4"
+                  />
+                </div>
+              )}
+
+              {section.key === "pageStructure" && (
+                <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
+                  <LayoutThumbnail
+                    layoutType="hero"
+                    title="页面结构预览"
+                    explanation="基于执行包的页面结构建议"
+                    className="mb-4"
+                  />
+                </div>
+              )}
+
+              {section.key === "interactionSystem" && (
+                <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
+                  <InteractionFlowPreview
+                    flowType="cta"
+                    title="交互流程预览"
+                    explanation="基于执行包的交互系统建议"
+                    className="mb-4"
+                  />
+                </div>
+              )}
             </GlassCardContent>
           </GlassCard>
         );

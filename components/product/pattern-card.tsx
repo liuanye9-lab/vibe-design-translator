@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { cn } from "@/lib/utils";
 import { Lightbulb, Layout, Palette, Type, MousePointer } from "lucide-react";
+import { DesignPatternPreview } from "@/components/visuals/design-pattern-preview";
 
 interface PatternCardProps {
   pattern: DesignPattern;
@@ -71,7 +72,7 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
       </div>
 
       {/* Visual traits preview */}
-      <div className="space-y-2">
+      <div className="space-y-2 mb-4">
         <p className="text-xs text-[var(--color-text-secondary)]">Visual traits</p>
         <div className="space-y-1">
           {pattern.visualTraits.slice(0, 2).map((trait, index) => (
@@ -84,6 +85,13 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
           ))}
         </div>
       </div>
+
+      {/* Pattern Preview */}
+      <DesignPatternPreview
+        patternId={pattern.id}
+        title="模式预览"
+        className="border border-[var(--color-border)]"
+      />
     </GlassCard>
   );
 }

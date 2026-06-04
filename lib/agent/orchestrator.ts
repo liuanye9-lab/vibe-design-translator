@@ -30,6 +30,10 @@ import {
   DiagnosisReport,
   ToolType,
 } from "@/lib/types";
+import { evaluateExecutionPack } from "@/lib/evaluators/execution-pack-evaluator";
+import { evaluateDiagnosisReport } from "@/lib/evaluators/diagnosis-evaluator";
+import { evaluatePromptQuality } from "@/lib/evaluators/prompt-quality-evaluator";
+import type { EvaluationResult } from "@/lib/evaluators/types";
 
 // ============================================================
 // ID Generation
@@ -228,6 +232,11 @@ const DESIGN_TRANSLATION_STEPS: AgentStepTemplate[] = [
     skillId: "prompt-compiler",
   },
   {
+    id: "dt-evaluate",
+    name: "质量评估",
+    description: "评估 Execution Pack 和 Prompt 的质量",
+  },
+  {
     id: "dt-save-to-project",
     name: "保存到项目",
     description: "将生成结果保存到当前项目",
@@ -308,11 +317,32 @@ export async function runDesignTranslationWorkflow(
     run.progress = calculateProgress(run.steps);
     callbacks.onRunUpdate({ ...run });
 
-    // Step 6: Save to project
+    // Step 6: Evaluate quality
     const step6 = run.steps[5];
     step6.status = "running";
     step6.startedAt = new Date().toISOString();
+    step6.inputSummary = "评估 Execution Pack 和 Prompt 质量";
     callbacks.onStepUpdate(run.id, { ...step6 });
+
+    const packEval = evaluateExecutionPack(pack as import("@/lib/types").DesignExecutionPack);
+    const promptEval = typeof prompt === "string"
+      ? evaluatePromptQuality(prompt, brief.outputTool as ToolType)
+      : null;
+
+    step6.status = "succeeded";
+    step6.progress = 100;
+    step6.outputSummary = `Pack: ${packEval.score}/100${promptEval ? `, Prompt: ${promptEval.score}/100` : ""}`;
+    step6.finishedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step6 });
+    callbacks.onEvent(run.id, createEvent("step_succeeded", `质量评估完成: Pack ${packEval.score}/100`, step6.id));
+    run.progress = calculateProgress(run.steps);
+    callbacks.onRunUpdate({ ...run });
+
+    // Step 7: Save to project
+    const step7 = run.steps[6];
+    step7.status = "running";
+    step7.startedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step7 });
 
     run.result = {
       interpretation,
@@ -320,11 +350,15 @@ export async function runDesignTranslationWorkflow(
       selectedDirectionId,
       pack,
       prompt,
+      evaluation: {
+        pack: packEval,
+        prompt: promptEval,
+      },
     };
-    step6.status = "succeeded";
-    step6.progress = 100;
-    step6.finishedAt = new Date().toISOString();
-    callbacks.onStepUpdate(run.id, { ...step6 });
+    step7.status = "succeeded";
+    step7.progress = 100;
+    step7.finishedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step7 });
 
     // Complete
     run.status = "succeeded";
@@ -370,6 +404,11 @@ const DIAGNOSIS_STEPS: AgentStepTemplate[] = [
     name: "生成重构 Prompt",
     description: "基于诊断结果编译工具专用重构 Prompt",
     skillId: "refactor-prompt-generator",
+  },
+  {
+    id: "diag-evaluate",
+    name: "质量评估",
+    description: "评估诊断报告和重构 Prompt 的质量",
   },
   {
     id: "diag-save",
@@ -434,19 +473,45 @@ export async function runDiagnosisWorkflow(
     run.progress = calculateProgress(run.steps);
     callbacks.onRunUpdate({ ...run });
 
-    // Step 5: Save
+    // Step 5: Evaluate quality
     const step5 = run.steps[4];
     step5.status = "running";
     step5.startedAt = new Date().toISOString();
+    step5.inputSummary = "评估诊断报告和重构 Prompt 质量";
+    callbacks.onStepUpdate(run.id, { ...step5 });
+
+    const diagEval = evaluateDiagnosisReport(report);
+    const refactorPromptEval = typeof refactorPrompt === "string"
+      ? evaluatePromptQuality(refactorPrompt, tool)
+      : null;
+
+    step5.status = "succeeded";
+    step5.progress = 100;
+    step5.outputSummary = `诊断: ${diagEval.score}/100${refactorPromptEval ? `, Prompt: ${refactorPromptEval.score}/100` : ""}`;
+    step5.finishedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step5 });
+    callbacks.onEvent(run.id, createEvent("step_succeeded", `质量评估完成: 诊断 ${diagEval.score}/100`, step5.id));
+    run.progress = calculateProgress(run.steps);
+    callbacks.onRunUpdate({ ...run });
+
+    // Step 6: Save
+    const step6 = run.steps[5];
+    step6.status = "running";
+    step6.startedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step6 });
 
     run.result = {
       report,
       refactorPrompt,
+      evaluation: {
+        diagnosis: diagEval,
+        prompt: refactorPromptEval,
+      },
     };
-    step5.status = "succeeded";
-    step5.progress = 100;
-    step5.finishedAt = new Date().toISOString();
-    callbacks.onStepUpdate(run.id, { ...step5 });
+    step6.status = "succeeded";
+    step6.progress = 100;
+    step6.finishedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step6 });
 
     // Complete
     run.status = "succeeded";
@@ -486,6 +551,11 @@ const REFACTOR_STEPS: AgentStepTemplate[] = [
     name: "生成重构 Prompt",
     description: "生成工具专用的重构 Prompt",
     skillId: "refactor-prompt-generator",
+  },
+  {
+    id: "ref-evaluate",
+    name: "质量评估",
+    description: "评估生成的 Prompt 质量",
   },
   {
     id: "ref-save",
@@ -543,16 +613,42 @@ export async function runRefactorWorkflow(
     run.progress = calculateProgress(run.steps);
     callbacks.onRunUpdate({ ...run });
 
-    // Step 4: Save
+    // Step 4: Evaluate quality
     const step4 = run.steps[3];
     step4.status = "running";
     step4.startedAt = new Date().toISOString();
+    step4.inputSummary = "评估 Prompt 质量";
+    callbacks.onStepUpdate(run.id, { ...step4 });
 
-    run.result = { prompt };
+    const promptEval = typeof prompt === "string"
+      ? evaluatePromptQuality(prompt, tool)
+      : null;
+
     step4.status = "succeeded";
     step4.progress = 100;
+    step4.outputSummary = promptEval ? `Prompt: ${promptEval.score}/100` : "跳过评估";
     step4.finishedAt = new Date().toISOString();
     callbacks.onStepUpdate(run.id, { ...step4 });
+    callbacks.onEvent(run.id, createEvent("step_succeeded", `质量评估完成: ${promptEval?.score || 0}/100`, step4.id));
+    run.progress = calculateProgress(run.steps);
+    callbacks.onRunUpdate({ ...run });
+
+    // Step 5: Save
+    const step5 = run.steps[4];
+    step5.status = "running";
+    step5.startedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step5 });
+
+    run.result = {
+      prompt,
+      evaluation: {
+        prompt: promptEval,
+      },
+    };
+    step5.status = "succeeded";
+    step5.progress = 100;
+    step5.finishedAt = new Date().toISOString();
+    callbacks.onStepUpdate(run.id, { ...step5 });
 
     // Complete
     run.status = "succeeded";

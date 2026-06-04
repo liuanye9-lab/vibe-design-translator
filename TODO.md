@@ -1,8 +1,8 @@
 # TODO - Vibe Design Translator
 
-## Version: Phase 5 Agent Workflow Foundation
-**Last Updated**: 2026-06-02
-**Project Progress**: 90% → 94%
+## Version: Phase 5 Real AI + Visual Agent Workflow MVP
+**Last Updated**: 2026-06-04
+**Project Progress**: 90% → 97%
 
 ---
 
@@ -57,9 +57,50 @@
 - [x] docs/AGENT_WORKFLOW.md 文档
 - [x] README.md 更新到 Phase 5
 
+### Phase 5 Real AI + Visual Agent Workflow MVP ✅
+
+- [x] 真实 Gemini Vision Provider 实现
+- [x] 真实 AI Execution Pack 生成
+- [x] 真实 Refactor Prompt 生成
+- [x] Visual Content System（6 个可视化组件）
+- [x] 环境变量从 NEXT_PUBLIC 改为服务端安全变量
+- [x] .env.example 更新（GEMINI_API_KEY, 模型名）
+- [x] 诊断前后对比可视化
+- [x] 设计方向视觉预览
+- [x] 设计模式缩略图
+- [x] 色彩系统展示
+- [x] 交互流程预览
+- [x] 页面结构缩略图
+- [x] Workspace 项目状态预览
+- [x] docs/REAL_AI_SETUP.md 文档
+- [x] README.md 新增核心功能详解
+- [x] 质量评估系统（execution-pack-evaluator, diagnosis-evaluator, prompt-quality-evaluator）
+- [x] EvaluationResultCard UI 组件
+- [x] Evaluator 集成到三个 Agent 工作流
+- [x] DiagnosisReport beforeAfter 字段（Gemini + Mock）
+- [x] lib/evaluators/ 模块（types, 3 evaluators, index）
+
 ---
 
 ## P1 - Important (Next Sprint)
+
+### Real AI Provider Enhancement
+
+- [ ] OpenAI API connector 实现
+- [ ] Claude API connector 实现
+- [ ] Mimo API connector 优化
+- [ ] API key management UI
+- [ ] Rate limiting and retry logic
+- [ ] Cost estimation display
+- [ ] Provider 性能对比
+
+### Visual Content Enhancement
+
+- [ ] 更多设计方向预览样式
+- [ ] 动态色彩系统生成
+- [ ] 响应式布局预览
+- [ ] 交互状态动画
+- [ ] 组件库预览
 
 ### Agent Workflow Enhancement
 
@@ -70,22 +111,6 @@
 - [ ] Human approval policy configuration
 - [ ] Workflow replay / diff
 - [ ] Agent evaluation metrics
-
-### AI API Integration
-
-- [ ] OpenAI API connector for brief interpretation
-- [ ] Claude API connector for design analysis
-- [ ] Gemini API connector for vision diagnosis
-- [ ] API key management UI
-- [ ] Rate limiting and retry logic
-- [ ] Cost estimation display
-
-### Vision Diagnosis Enhancement
-
-- [ ] Image preview and crop
-- [ ] Vision API integration (Claude/Gemini)
-- [ ] Before/after comparison view
-- [ ] Batch diagnosis for multiple pages
 
 ### User Authentication
 
@@ -177,6 +202,34 @@
 ---
 
 ## Changelog
+
+### 2026-06-04 - Phase 5 Quality Evaluation System
+
+- **Quality Evaluation System**: 3 个规则化评估器（Execution Pack、Diagnosis Report、Prompt Quality）
+- **6 Evaluation Dimensions**: 完整性、具体性、可执行性、工具适配、反 AI 感、风险控制
+- **Evaluator Integration**: 评估器集成到三个标准 Agent 工作流（Design Translation、Page Diagnosis、Refactor Prompt）
+- **EvaluationResultCard UI**: 环形分数指示器 + 6 维度条形图 + 问题列表 + 改进建议
+- **DiagnosisReport beforeAfter**: 新增 beforeAfter 字段，Gemini 和 Mock 均返回前后对比数据
+- **Agent Workflow Steps**: 每个工作流新增"质量评估"步骤，自动运行评估并记录结果
+- All health checks pass: `npm run lint` ✓, `npx tsc --noEmit` ✓, `npm run build` ✓
+
+### 2026-06-03 - Phase 5 Real AI + Visual Agent Workflow MVP
+
+- **Real Gemini Vision Provider**: 真实调用 Gemini API 进行截图诊断
+- **Real Execution Pack Generation**: 真实 AI 生成设计执行包
+- **Real Refactor Prompt Generation**: 真实 AI 生成工具专用重构 Prompt
+- **Visual Content System**: 6 个原创可视化组件（VisualDirectionPreview, DesignPatternPreview, LayoutThumbnail, DiagnosisBeforeAfter, ColorSystemStrip, InteractionFlowPreview）
+- **Environment Variables**: 从 NEXT_PUBLIC 改为服务端安全变量（AI_PROVIDER, ENABLE_REAL_AI, ENABLE_VISION_DIAGNOSIS）
+- **Gemini Configuration**: GEMINI_API_KEY, GEMINI_VISION_MODEL, GEMINI_TEXT_MODEL
+- **Diagnosis Visualization**: 诊断前后对比可视化
+- **Direction Preview**: 设计方向视觉预览
+- **Pattern Preview**: 设计模式缩略图
+- **Color System**: 色彩系统展示
+- **Interaction Flow**: 交互流程预览
+- **Layout Thumbnail**: 页面结构缩略图
+- **Workspace Status**: 项目状态预览（Brief, Direction, Diagnosis, Prompt Export）
+- **Documentation**: docs/REAL_AI_SETUP.md, README.md 核心功能详解
+- All health checks pass: `npm run lint` ✓, `npx tsc --noEmit` ✓, `npm run build` ✓
 
 ### 2026-06-02 - Phase 5 Agent Workflow Foundation
 

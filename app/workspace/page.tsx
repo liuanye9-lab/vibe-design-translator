@@ -295,6 +295,17 @@ export default function WorkspacePage() {
                       </span>
                     </div>
 
+                    {/* Status Preview */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={`w-2 h-2 rounded-full ${project.brief ? "bg-green-500" : "bg-gray-300"}`} title="Brief"></div>
+                      <div className={`w-2 h-2 rounded-full ${project.selectedDirectionId ? "bg-green-500" : "bg-gray-300"}`} title="Direction"></div>
+                      <div className={`w-2 h-2 rounded-full ${diagnosisCount > 0 ? "bg-green-500" : "bg-gray-300"}`} title="Diagnosis"></div>
+                      <div className={`w-2 h-2 rounded-full ${promptCount > 0 ? "bg-green-500" : "bg-gray-300"}`} title="Prompt Export"></div>
+                      <span className="text-[10px] text-[var(--color-text-muted)] ml-1">
+                        {project.brief ? "Brief" : "—"} · {project.selectedDirectionId ? "方向" : "—"} · {diagnosisCount > 0 ? "诊断" : "—"} · {promptCount > 0 ? "导出" : "—"}
+                      </span>
+                    </div>
+
                     {/* Actions */}
                     <div
                       className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"

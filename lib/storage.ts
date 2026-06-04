@@ -42,9 +42,14 @@ export const storage = {
   clearAll(): void {
     if (typeof window === "undefined") return;
     try {
-      Object.values(localStorage)
-        .filter((key) => key.startsWith("vibe_translator_"))
-        .forEach((key) => localStorage.removeItem(key));
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("vibe_translator_")) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
     } catch (error) {
       console.error("Failed to clear storage:", error);
     }
