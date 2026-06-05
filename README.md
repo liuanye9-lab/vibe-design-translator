@@ -629,10 +629,23 @@ vibe-design-translator/
 
 ```mermaid
 pie title 项目完成度
-    "已完成" : 97
-    "进行中" : 2
+    "已完成" : 98
+    "进行中" : 1
     "待开发" : 1
 ```
+
+### Phase 6 Global i18n + Visual Material System ✅
+
+- ✅ 全局中英文 i18n 字典系统（结构化字典）
+- ✅ 语言切换组件（TopNav 集成）
+- ✅ Zustand store 集成 locale 状态
+- ✅ Prompt 输出语言分离（中文/英文独立生成）
+- ✅ i18n key 泄漏检测脚本
+- ✅ 双语混杂检查脚本
+- ✅ VisualDirectionPreview locale 支持
+- ✅ DesignPatternPreview locale 支持
+- ✅ 所有页面和组件接入 i18n 系统
+- ✅ 选项数据结构统一（OptionItem）
 
 ### Phase 5 Real AI + Visual Agent Workflow MVP ✅
 

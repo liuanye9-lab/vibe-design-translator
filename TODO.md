@@ -1,8 +1,8 @@
 # TODO - Vibe Design Translator
 
-## Version: Phase 5 Real AI + Visual Agent Workflow MVP
-**Last Updated**: 2026-06-04
-**Project Progress**: 90% → 97%
+## Version: Phase 6 Global i18n + Visual Material System
+**Last Updated**: 2026-06-05
+**Project Progress**: 97% → 98%
 
 ---
 
@@ -16,7 +16,7 @@
 
 ---
 
-## P0 - Critical (Must Fix Before Phase 6)
+## P0 - Critical (Must Fix Before Phase 7)
 
 ### Engineering Stability
 
@@ -38,24 +38,22 @@
 - [x] Server-side AI API routes with mock fallback (Phase 4)
 - [x] GitHub Actions CI pipeline (Phase 4)
 
-### Phase 5 Completed
+### Phase 6 Global i18n + Visual Material System ✅
 
-- [x] AgentRun / AgentStep / AgentEvent 类型系统
-- [x] 7 个 Agent Skills (brief-interpreter, direction-planner, execution-pack-generator, prompt-compiler, vision-diagnosis, refactor-prompt-generator, project-exporter)
-- [x] Skill Registry (统一注册和获取)
-- [x] Workflow Orchestrator (设计翻译、页面诊断、重构 Prompt 三个工作流)
-- [x] Agent Workflow UI 组件 (AgentRunPanel, WorkflowTimeline, AgentStepCard, AgentProgressBar, ToolCallTrace, HumanApprovalGate, AgentEventLog)
-- [x] Agent Runs 页面 (/agent-runs)
-- [x] 顶部导航增加 "Agent 工作流" 入口
-- [x] Diagnosis 页面接入 Agent Workflow 模式
-- [x] Brief 页面接入 Agent Workflow 模式
-- [x] Workspace 页面显示 Agent Run 状态
-- [x] Zustand Store 新增 agentRuns 状态管理
-- [x] localStorage 持久化 Agent Runs
-- [x] 失败步骤支持重试
-- [x] 人工确认门控 (Human Approval Gate)
-- [x] docs/AGENT_WORKFLOW.md 文档
-- [x] README.md 更新到 Phase 5
+- [x] 全局中英文 i18n 字典系统（lib/i18n/types.ts, zh.ts, en.ts, index.ts, safe-text.ts）
+- [x] 语言切换组件（components/layout/language-toggle.tsx）
+- [x] Zustand store 集成 locale 状态（store/use-design-store.ts）
+- [x] useI18n hook 向后兼容（lib/i18n/use-i18n.ts）
+- [x] Prompt 输出语言分离（lib/prompt-templates.ts locale 参数）
+- [x] i18n key 泄漏检测脚本（scripts/check-i18n-leaks.mjs）
+- [x] 双语混杂检查脚本（scripts/check-bilingual-mix.mjs）
+- [x] VisualDirectionPreview locale 支持
+- [x] DesignPatternPreview locale 支持
+- [x] 所有页面接入 i18n（通过 useI18n hook）
+- [x] 所有组件接入 i18n（通过 useI18n hook）
+- [x] TopNav 语言切换集成
+- [x] README.md 更新到 Phase 6
+- [x] TODO.md 更新到 Phase 6
 
 ### Phase 5 Real AI + Visual Agent Workflow MVP ✅
 

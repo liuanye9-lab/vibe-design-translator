@@ -15,6 +15,7 @@ import {
   ScreenshotAsset,
 } from "@/lib/types";
 import type { AgentRun, AgentEvent, AgentStep } from "@/lib/agent/types";
+import type { Locale } from "@/lib/i18n/types";
 import { storage, historyStorage } from "@/lib/storage";
 
 // ============================================================
@@ -30,6 +31,10 @@ interface DesignStore {
   diagnosisReport: DiagnosisReport | null;
   history: HistoryItem[];
   isHydrated: boolean;
+
+  // Phase 6: i18n State
+  locale: Locale;
+  promptLanguage: Locale;
 
   // Phase 3: Project Workspace State
   projects: DesignProject[];
@@ -51,6 +56,11 @@ interface DesignStore {
   clearHistory: () => void;
   clearAllData: () => void;
   hydrateFromStorage: () => void;
+
+  // Phase 6: i18n Actions
+  setLocale: (locale: Locale) => void;
+  toggleLocale: () => void;
+  setPromptLanguage: (locale: Locale) => void;
 
   // Phase 3: Project Management Actions
   createProject: (name: string, category: string) => string;
@@ -86,6 +96,10 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   diagnosisReport: null,
   history: [],
   isHydrated: false,
+
+  // Phase 6: i18n State
+  locale: "zh",
+  promptLanguage: "zh",
 
   // Phase 3: Project Workspace State
   projects: [],
@@ -181,6 +195,9 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       currentProjectId: null,
       agentRuns: [],
       currentAgentRunId: null,
+      // Keep locale settings
+      locale: get().locale,
+      promptLanguage: get().promptLanguage,
     });
     if (typeof window !== "undefined") {
       storage.set("vibe_translator_mode", null);
@@ -192,6 +209,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       storage.remove("vibe_translator_current_project");
       storage.remove("vibe_translator_agent_runs");
       storage.remove("vibe_translator_current_agent_run");
+      // Keep locale settings
     }
   },
 
@@ -210,6 +228,10 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       const agentRuns = storage.get<AgentRun[]>("vibe_translator_agent_runs") || [];
       const currentAgentRunId = storage.get<string | null>("vibe_translator_current_agent_run");
 
+      // Phase 6: Hydrate locale
+      const locale = storage.get<Locale>("vibe_translator_locale") || "zh";
+      const promptLanguage = storage.get<Locale>("vibe_translator_prompt_language") || locale;
+
       set({
         currentMode: mode,
         brief,
@@ -221,11 +243,38 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         currentProjectId,
         agentRuns,
         currentAgentRunId,
+        locale,
+        promptLanguage,
         isHydrated: true,
       });
     } catch (error) {
       console.error("Failed to hydrate from storage:", error);
       set({ isHydrated: true });
+    }
+  },
+
+  // Phase 6: i18n Actions
+
+  setLocale: (locale: Locale) => {
+    set({ locale });
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_locale", locale);
+    }
+  },
+
+  toggleLocale: () => {
+    const current = get().locale;
+    const next: Locale = current === "zh" ? "en" : "zh";
+    set({ locale: next });
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_locale", next);
+    }
+  },
+
+  setPromptLanguage: (locale: Locale) => {
+    set({ promptLanguage: locale });
+    if (typeof window !== "undefined") {
+      storage.set("vibe_translator_prompt_language", locale);
     }
   },
 

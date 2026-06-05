@@ -17,6 +17,7 @@ import {
   ToolType,
 } from "./types";
 import { TOOL_LABELS } from "./constants";
+import type { Locale } from "./i18n/types";
 
 // ============================================================
 // Main Generator Function
@@ -24,27 +25,31 @@ import { TOOL_LABELS } from "./constants";
 
 /**
  * Generate complete execution pack with all tool-specific prompts
+ * @param locale - Output language for prompts ("zh" or "en", defaults to "en")
  */
 export function generateExecutionPack(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  locale: Locale = "en"
 ): DesignExecutionPack {
+  const isZh = locale === "zh";
+
   const pack: DesignExecutionPack = {
-    strategy: generateStrategy(brief, direction),
-    pageStructure: generatePageStructure(brief, direction),
+    strategy: generateStrategy(brief, direction, isZh),
+    pageStructure: generatePageStructure(brief, direction, isZh),
     visualSystem: generateVisualSystem(brief, direction),
     interactionSystem: generateInteractionSystem(brief, direction),
-    acceptanceCriteria: generateAcceptanceCriteria(brief, direction),
-    antiAILookChecklist: generateAntiAILookChecklist(),
+    acceptanceCriteria: generateAcceptanceCriteria(brief, direction, isZh),
+    antiAILookChecklist: generateAntiAILookChecklist(isZh),
     prompts: {
-      codex: generateCodexPrompt(brief, direction),
-      "claude-code": generateClaudeCodePrompt(brief, direction),
-      gemini: generateGeminiPrompt(brief, direction),
-      workbuddy: generateWorkbuddyPrompt(brief, direction),
+      codex: generateCodexPrompt(brief, direction, isZh),
+      "claude-code": generateClaudeCodePrompt(brief, direction, isZh),
+      gemini: generateGeminiPrompt(brief, direction, isZh),
+      workbuddy: generateWorkbuddyPrompt(brief, direction, isZh),
     },
     // Enhanced fields
-    contentTone: generateContentTone(brief, direction),
-    componentRules: generateComponentRules(brief, direction),
+    contentTone: generateContentTone(brief, direction, isZh),
+    componentRules: generateComponentRules(brief, direction, isZh),
     responsiveRules: generateResponsiveRules(brief, direction),
     // Metadata
     productName: brief.productName,
@@ -62,8 +67,24 @@ export function generateExecutionPack(
 
 function generateStrategy(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string[] {
+  if (isZh) {
+    return [
+      `通过克制的色彩运用和充足的留白建立 ${direction.name} 美学`,
+      `优先考虑清晰度和可读性，而非装饰`,
+      `使用 ${brief.visualIntensity} 视觉强度来平衡存在感和专业性`,
+      `实现 ${brief.contentDensity} 内容密度以获得最佳信息层级`,
+      `创建从落地页到主要 CTA（"${brief.mainCTA}"）的清晰用户旅程`,
+      `避免通用 AI 生成的模式；拥抱 ${direction.psychologicalEffect} 感受`,
+      `移动优先设计，逐步增强以适配大屏幕`,
+      `使用 ${brief.firstImpression?.replace(/-/g, " ") || "专业"} 作为情感锚点`,
+      `优先考虑 ${brief.businessPriority?.replace(/-/g, " ") || "转化"} 作为主要业务目标`,
+      `针对 ${brief.audience?.replace(/-/g, " ") || "通用用户"} 定制信息`,
+    ];
+  }
+
   return [
     `Establish ${direction.name} aesthetic through restrained color usage and generous whitespace`,
     `Prioritize clarity and readability over decoration`,
@@ -72,7 +93,6 @@ function generateStrategy(
     `Create clear user journey from landing to primary CTA ("${brief.mainCTA}")`,
     `Avoid generic AI-generated patterns; embrace ${direction.psychologicalEffect.toLowerCase()} feel`,
     `Design mobile-first with progressive enhancement for larger screens`,
-    // Enhanced strategy
     `Use ${brief.firstImpression?.replace(/-/g, " ") || "professional"} as the emotional anchor`,
     `Prioritize ${brief.businessPriority?.replace(/-/g, " ") || "conversion"} as the primary business goal`,
     `Target ${brief.audience?.replace(/-/g, " ") || "general users"} with tailored messaging`,
@@ -85,8 +105,35 @@ function generateStrategy(
 
 function generatePageStructure(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string[] {
+  if (isZh) {
+    const structures: string[] = [
+      "Hero 区：清晰的价值主张与主要 CTA",
+      "社会证明：Logo、评价或数据以建立信任",
+      "功能/优势：用视觉清晰度解决痛点",
+    ];
+
+    if (brief.pageGoal.toLowerCase().includes("convert") || brief.pageGoal.includes("注册") || brief.pageGoal.includes("转化")) {
+      structures.push(
+        "转化区：策略性 CTA 放置与信任指标",
+        "FAQ 区：在最终 CTA 前解决异议"
+      );
+    }
+
+    if (brief.targetUsers.toLowerCase().includes("developer") || brief.targetUsers.includes("开发者")) {
+      structures.push("技术详情：代码片段、API 信息或文档链接");
+    }
+
+    structures.push(
+      "页脚：联系方式、链接、法律信息、二级导航",
+      `确保 ${brief.productCategory} 上下文体现在区块排序中`
+    );
+
+    return structures;
+  }
+
   const structures: string[] = [
     "Hero Section: Clear value proposition with primary CTA",
     "Social Proof: Logos, testimonials, or metrics to build trust",
@@ -180,8 +227,42 @@ function generateInteractionSystem(
 
 function generateContentTone(
   _brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string[] {
+  if (isZh) {
+    const toneBase = [
+      "使用具体、明确的语言，避免通用热词",
+      "为可扫描性而写：短段落、清晰标题",
+      "以价值主张为先，用证据支撑",
+    ];
+
+    if (direction.id === "calm-professional") {
+      return [
+        ...toneBase,
+        "专业且权威的语气",
+        "数据驱动的声明，附带具体指标",
+        "清晰、直接的沟通，无多余修饰",
+      ];
+    }
+
+    if (direction.id === "soft-intelligent") {
+      return [
+        ...toneBase,
+        "友好但精致的语调",
+        "用易懂的语言解释复杂概念",
+        "平衡技术可信度与人文温度",
+      ];
+    }
+
+    return [
+      ...toneBase,
+      "自信且独特的品牌语调",
+      "编辑级品质的文案",
+      "令人印象深刻的表达",
+    ];
+  }
+
   const toneBase = [
     "Use specific, concrete language over generic buzzwords",
     "Write for scannability: short paragraphs, clear headings",
@@ -220,8 +301,43 @@ function generateContentTone(
 
 function generateComponentRules(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string[] {
+  if (isZh) {
+    const baseRules = [
+      "所有按钮必须有明确的默认、悬停、激活、禁用状态",
+      "卡片应保持一致的内边距（16-24px）",
+      "表单需要清晰的标签、验证状态和错误消息",
+      "图标：一致的大小、风格和描边宽度",
+    ];
+
+    if (direction.id === "calm-professional") {
+      return [
+        ...baseRules,
+        "保持页面组件风格统一",
+        "使用微妙边框而非厚重阴影",
+        "优先考虑可读性而非视觉装饰",
+      ];
+    }
+
+    if (direction.id === "soft-intelligent") {
+      return [
+        ...baseRules,
+        "允许组件间微妙的高度变化",
+        "对交互元素使用柔和圆角（rounded-2xl）",
+        "在关键区块考虑使用微妙渐变背景",
+      ];
+    }
+
+    return [
+      ...baseRules,
+      "允许组件样式的创意变化",
+      "考虑自定义插图或装饰元素",
+      "排版可以打破网格以获得视觉冲击",
+    ];
+  }
+
   const baseRules = [
     "All buttons must have distinct default, hover, active, disabled states",
     "Cards should have consistent internal padding (16-24px)",
@@ -280,8 +396,24 @@ function generateResponsiveRules(
 
 function generateAcceptanceCriteria(
   brief: DesignBrief,
-  _direction: DesignDirection
+  _direction: DesignDirection,
+  isZh: boolean = false
 ): string[] {
+  if (isZh) {
+    return [
+      "页面在 3G 连接下 <3s 加载完成",
+      "Core Web Vitals：LCP <2.5s，FID <100ms，CLS <0.1",
+      "所有 CTA 可点击且指向预期目标",
+      "响应式断点：375px、768px、1024px、1440px",
+      "颜色对比度满足 WCAG AA（正常文本 4.5:1）",
+      `主要 CTA（"${brief.mainCTA}"）在首屏显著可见`,
+      "移动端点击目标最小 44x44px",
+      "字体加载期间无布局偏移（font-display: swap）",
+      "所有图片有 alt 文本",
+      "键盘导航全程可用",
+    ];
+  }
+
   return [
     "Page loads in <3s on 3G connection",
     "Core Web Vitals: LCP <2.5s, FID <100ms, CLS <0.1",
@@ -300,7 +432,25 @@ function generateAcceptanceCriteria(
 // Anti-AI-Look Checklist
 // ============================================================
 
-export function generateAntiAILookChecklist(): string[] {
+export function generateAntiAILookChecklist(isZh: boolean = false): string[] {
+  if (isZh) {
+    return [
+      "页面看起来像通用 SaaS 模板吗？→ 添加独特品牌元素",
+      "所有颜色来自单一调色板或随机？→ 确保有意识的色彩选择",
+      "每个区块都完美居中？→ 考虑不对称布局",
+      "图标都来自同一个库？→ 混合风格或使用自定义 SVG",
+      "间距在整个页面中是均匀的？→ 有意地变化间距",
+      "所有卡片样式都相同？→ 在一致性中添加变化",
+      "有过多的玻璃/模糊效果？→ 保持克制",
+      "使用了通用库存照片？→ 使用原创摄影或插图",
+      "排版缺乏层级？→ 创建清晰的字体比例",
+      "渐变使用随意？→ 确保渐变目的明确",
+      "有渐变文字 logo？→ 优先使用纯色",
+      "所有按钮悬停效果相同？→ 变化交互模式",
+      "所有阴影都一样？→ 创建高度层级",
+    ];
+  }
+
   return [
     "Does the page look like a generic SaaS template? → Add unique brand elements",
     "Are all colors from a single palette or random? → Ensure deliberate color choices",
@@ -388,8 +538,77 @@ ${pack.antiAILookChecklist.map((c) => `- ${c}`).join("\n")}
 
 function generateCodexPrompt(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string {
+  if (isZh) {
+    return `你正在构建一个 ${brief.productName} ${brief.productCategory} 落地页。
+
+## 页面目标
+${brief.pageGoal}
+
+## 目标用户
+${brief.targetUsers}
+
+## 期望感受
+创建让人感觉：${brief.desiredFeeling.join("、")}
+避免：${brief.avoidedFeeling.join("、")}
+
+## 视觉方向：${direction.name}
+${direction.description}
+
+### 色彩系统
+${direction.colorSystem.map((c) => `- ${c}`).join("\n")}
+
+### 字体排版
+${direction.typography}
+
+### 布局指导
+${direction.layoutAdvice.map((l) => `- ${l}`).join("\n")}
+
+## 技术要求
+
+### 主要 CTA
+"${brief.mainCTA}" — 必须显眼放置且视觉突出。
+
+### 视觉强度
+${brief.visualIntensity === "minimal" ? "极简 — 保守用色和装饰" : brief.visualIntensity === "expressive" ? "表现力强 — 大胆用色、大字号、动态布局" : "均衡 — 在极简和表现力之间取得平衡"}
+
+### 内容密度
+${brief.contentDensity === "light" ? "轻量 — 大量留白、精简文字" : brief.contentDensity === "dense" ? "密集 — 信息丰富、紧凑布局" : "标准 — 平衡的信息密度"}
+
+## 实现检查清单
+
+按以下进度序列执行：
+
+[  ] 0% — 项目搭建：创建 React/Vue 组件结构，安装依赖，配置 Tailwind
+[  ] 10% — 基础布局：设置网格系统、最大宽度容器、区块间距（48-64px 内边距）
+[  ] 20% — 字体排版：定义字体比例、设置字重、建立行高
+[  ] 30% — 色彩系统：应用主/副调色板，确保对比度
+[  ] 40% — Hero 区：价值主张、标题、副标题、主要 CTA
+[  ] 50% — 社会证明：Logo、评价或数据区块
+[  ] 60% — 功能展示：带图标的优势说明，清晰层级
+[  ] 70% — 次要 CTA：转化区与信任指标
+[  ] 80% — 打磨：悬停状态、焦点环、微交互
+[  ] 90% — 响应式：测试所有断点，修复移动端布局问题
+[  ] 100% — 质量：可访问性审计、性能检查、最终审查
+
+## 编码标准
+
+- 使用语义化 HTML5 元素
+- 遵循 BEM 或 CSS Modules 命名
+- 移动优先响应式设计
+- 实现 ${brief.contentDensity === "light" ? "充裕" : brief.contentDensity === "dense" ? "紧凑" : "标准"} 区块内边距
+- 应用微妙阴影（0 4px 20px rgba(0,0,0,0.05)）
+- 使用 ${brief.visualIntensity === "minimal" ? "0-4px" : brief.visualIntensity === "expressive" ? "16-24px" : "8-12px"} 圆角
+
+## 反 AI 模板规则
+${generateAntiAILookChecklist(true).map((r) => `- ${r}`).join("\n")}
+
+## 验收标准
+${generateAcceptanceCriteria(brief, direction, true).map((c) => `- ${c}`).join("\n")}`;
+  }
+
   return `You are building a ${brief.productName} ${brief.productCategory} landing page.
 
 ## Page Goal
@@ -459,7 +678,8 @@ ${generateAcceptanceCriteria(brief, direction).map((c) => `- ${c}`).join("\n")}`
 
 function generateClaudeCodePrompt(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string {
   return `# ${brief.productName} - ${brief.productCategory} Page Implementation
 
@@ -593,7 +813,8 @@ Present your implementation as:
 
 function generateGeminiPrompt(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string {
   return `# ${brief.productName} Landing Page
 
@@ -714,7 +935,8 @@ All checks must pass.`;
 
 function generateWorkbuddyPrompt(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  isZh: boolean = false
 ): string {
   return `# ${brief.productName} - ${brief.productCategory} 页面实现任务
 
