@@ -27,6 +27,8 @@ export type ContentDensity =
   | "standard"
   | "dense";
 
+export type Locale = "zh" | "en";
+
 // ============================================================
 // Design Brief
 // ============================================================
@@ -38,7 +40,7 @@ export interface DesignBrief {
   productCategory: string;
   targetUsers: string;
   pageGoal: string;
-  
+
   // Legacy fields
   desiredFeeling: string[];
   avoidedFeeling: string[];
@@ -46,7 +48,7 @@ export interface DesignBrief {
   visualIntensity: VisualIntensity;
   contentDensity: ContentDensity;
   outputTool: ToolType;
-  
+
   // Enhanced Design Decision Fields
   firstImpression?: string;
   businessPriority?: string;
@@ -133,17 +135,18 @@ export interface DesignExecutionPack {
   acceptanceCriteria: string[];
   antiAILookChecklist: string[];
   prompts: Record<ToolType, string>;
-  
+
   // Enhanced structure
   contentTone?: string[];
   componentRules?: string[];
   responsiveRules?: string[];
-  
+
   // Metadata
   productName?: string;
   productCategory?: string;
   selectedDirection?: string;
   generatedAt?: string;
+  locale?: Locale;
 }
 
 // ============================================================
@@ -178,7 +181,7 @@ export interface DiagnosisReport {
   findings: string[];
   fixes: string[];
   refactorPrompts: Record<ToolType, string>;
-  
+
   // Enhanced fields
   detailedFindings?: DiagnosisFinding[];
   repairStrategy?: {
@@ -190,13 +193,43 @@ export interface DiagnosisReport {
   };
   pageType?: string;
   primaryPainPoint?: string;
+
+  // Screenshot analysis
+  screenshotAnalyzed?: boolean;
+  screenshotName?: string;
+
+  // Before/After
+  beforeState?: string;
+  afterState?: string;
+  beforeAfter?: Array<{
+    zoneId?: string;
+    before: string;
+    after: string;
+  }>;
+  focusZones?: Array<{
+    id: string;
+    title: string;
+    severity: "low" | "medium" | "high";
+    evidence: string;
+    bbox?: {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+  }>;
+
+  // Confidence level
+  confidence?: "low" | "medium" | "high";
+  locale?: Locale;
 }
 
 export interface DiagnosisInput {
   pageType: string;
   pageDescription: string;
   primaryPainPoint: string;
-  screenshotUrl?: string;
+  screenshotAsset?: ScreenshotAsset | null;
+  locale?: Locale;
 }
 
 // ============================================================
@@ -208,7 +241,9 @@ export type HistoryEventType =
   | "direction_selected"
   | "prompt_copied"
   | "diagnosis_performed"
-  | "pack_exported";
+  | "pack_exported"
+  | "project_created"
+  | "project_updated";
 
 export interface HistoryItem {
   id: string;
@@ -218,14 +253,81 @@ export interface HistoryItem {
 }
 
 // ============================================================
+// Screenshot Asset
+// ============================================================
+
+export interface ScreenshotAsset {
+  id: string;
+  name: string;
+  dataUrl: string;
+  size: number;
+  type: string;
+  createdAt: string;
+}
+
+// ============================================================
+// Project Workspace
+// ============================================================
+
+export interface PromptExport {
+  id: string;
+  tool: ToolType;
+  prompt: string;
+  createdAt: string;
+}
+
+export interface DesignProject {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  brief?: DesignBrief;
+  selectedDirectionId?: string | null;
+  executionPack?: DesignExecutionPack;
+  diagnosisReports: DiagnosisReport[];
+  promptExports: PromptExport[];
+  screenshots: ScreenshotAsset[];
+}
+
+// ============================================================
+// AI Provider Types
+// ============================================================
+
+export type AIProviderType = "mock" | "openai" | "claude" | "gemini" | "mimo";
+
+export interface DesignAIProvider {
+  type: AIProviderType;
+  name: string;
+  isEnabled: boolean;
+  generateDirections?: (input: DesignBrief) => Promise<DesignDirection[]>;
+  generateExecutionPack?: (
+    brief: DesignBrief,
+    direction: DesignDirection
+  ) => Promise<DesignExecutionPack>;
+}
+
+export interface VisionDiagnosisProvider {
+  type: AIProviderType;
+  name: string;
+  isEnabled: boolean;
+  diagnoseScreenshot?: (input: DiagnosisInput) => Promise<DiagnosisReport>;
+}
+
+// ============================================================
 // App State
 // ============================================================
 
 export interface AppState {
+  locale: Locale;
   currentMode: UserMode | null;
   brief: DesignBrief | null;
   selectedDirectionId: string | null;
   selectedTool: ToolType;
   diagnosisReport: DiagnosisReport | null;
   history: HistoryItem[];
+
+  // Project Workspace
+  projects: DesignProject[];
+  currentProjectId: string | null;
 }

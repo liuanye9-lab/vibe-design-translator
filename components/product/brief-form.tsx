@@ -11,6 +11,7 @@ import { useDesignStore } from "@/store/use-design-store";
 import { GlassCard } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { SectionLabel, SectionHeading } from "@/components/ui/section-heading";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import {
   PRODUCT_CATEGORIES,
   DESIRED_FEELING_OPTIONS,
@@ -31,6 +32,7 @@ interface BriefFormProps {
 export function BriefForm({ mode }: BriefFormProps) {
   const router = useRouter();
   const { updateBrief, setMode, addHistory } = useDesignStore();
+  const { locale, t, optionLabel, optionDescription } = useI18n();
 
   // Form state
   const [productName, setProductName] = useState("");
@@ -74,11 +76,11 @@ export function BriefForm({ mode }: BriefFormProps) {
     const brief: DesignBrief = {
       productName: productName || "My Product",
       productCategory: productCategory || PRODUCT_CATEGORIES[0],
-      targetUsers: targetUsers || "General users",
-      pageGoal: pageGoal || "Create awareness and drive conversions",
+      targetUsers: targetUsers || (locale === "zh" ? "通用用户" : "General users"),
+      pageGoal: pageGoal || (locale === "zh" ? "建立认知并推动转化" : "Create awareness and drive conversions"),
       desiredFeeling: desiredFeeling.length > 0 ? desiredFeeling : ["Professional", "Trustworthy"],
       avoidedFeeling: avoidedFeeling.length > 0 ? avoidedFeeling : ["Generic AI", "Template-like"],
-      mainCTA: mainCTA || "Get Started",
+      mainCTA: mainCTA || (locale === "zh" ? "开始使用" : "Get Started"),
       visualIntensity,
       contentDensity,
       outputTool,
@@ -104,16 +106,16 @@ export function BriefForm({ mode }: BriefFormProps) {
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] mb-4">
           <Sparkles className="w-4 h-4 text-[var(--color-accent-ios-blue)]" />
           <span className="text-sm font-medium text-[var(--color-text-secondary)]">
-            {isLightMode ? "Quick Direction Finder" : "Design Decision Workshop"}
+            {isLightMode ? t("brief.quick") : t("brief.workshop")}
           </span>
         </div>
         <SectionHeading align="center">
-          {isLightMode ? "What are you building?" : "Tell us about your vision"}
+          {isLightMode ? t("brief.title.light") : t("brief.title.full")}
         </SectionHeading>
         <p className="text-[var(--color-text-secondary)] mt-2">
           {isLightMode
-            ? "Answer a few questions and we'll suggest a design direction."
-            : "We'll translate your feelings into concrete design specifications."}
+            ? t("brief.subtitle.light")
+            : t("brief.subtitle.full")}
         </p>
       </div>
 
@@ -124,41 +126,41 @@ export function BriefForm({ mode }: BriefFormProps) {
             <SectionLabel>
               <span className="flex items-center gap-2">
                 <Lightbulb className="w-4 h-4" />
-                What are you building?
+                {t("brief.product.label")}
               </span>
             </SectionLabel>
             <input
               type="text"
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
-              placeholder="e.g., A developer tool for API documentation"
+              placeholder={t("brief.product.placeholder")}
               className="input"
             />
           </div>
 
           {/* Product Category */}
           <div>
-            <SectionLabel>Product Category</SectionLabel>
+            <SectionLabel>{t("brief.category")}</SectionLabel>
             <select
               value={productCategory}
               onChange={(e) => setProductCategory(e.target.value)}
               className="select"
             >
-              <option value="">Select a category</option>
+              <option value="">{t("brief.category.placeholder")}</option>
               {PRODUCT_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>{optionLabel(cat)}</option>
               ))}
             </select>
           </div>
 
           {/* Target Users */}
           <div>
-            <SectionLabel>Who is this for?</SectionLabel>
+            <SectionLabel>{t("brief.targetUsers")}</SectionLabel>
             <input
               type="text"
               value={targetUsers}
               onChange={(e) => setTargetUsers(e.target.value)}
-              placeholder="e.g., Developers building REST APIs"
+              placeholder={t("brief.targetUsers.placeholder")}
               className="input"
             />
           </div>
@@ -169,10 +171,10 @@ export function BriefForm({ mode }: BriefFormProps) {
               {/* First Impression */}
               <div>
                 <SectionLabel>
-                  First Impression — What should users feel within 3 seconds?
+                  {t("brief.firstImpression")}
                 </SectionLabel>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Choose the emotional response you want to evoke
+                  {t("brief.firstImpression.desc")}
                 </p>
                 <div className="space-y-3">
                   {FIRST_IMPRESSION_OPTIONS.map((option) => (
@@ -189,14 +191,14 @@ export function BriefForm({ mode }: BriefFormProps) {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
+                          {optionLabel(option.value)}
                         </span>
                         {firstImpression === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
+                          <span className="text-[var(--color-accent-ios-blue)] text-sm">{t("brief.selected")}</span>
                         )}
                       </div>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
+                        {optionDescription(option.value, option.description)}
                       </p>
                     </button>
                   ))}
@@ -205,9 +207,9 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Business Priority */}
               <div>
-                <SectionLabel>Business Priority — What's most important?</SectionLabel>
+                <SectionLabel>{t("brief.businessPriority")}</SectionLabel>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  This helps us optimize the design for your goals
+                  {t("brief.businessPriority.desc")}
                 </p>
                 <div className="grid grid-cols-1 gap-3">
                   {BUSINESS_PRIORITY_OPTIONS.map((option) => (
@@ -224,14 +226,14 @@ export function BriefForm({ mode }: BriefFormProps) {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
+                          {optionLabel(option.value)}
                         </span>
                         {businessPriority === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
+                          <span className="text-[var(--color-accent-ios-blue)] text-sm">{t("brief.selected")}</span>
                         )}
                       </div>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
+                        {optionDescription(option.value, option.description)}
                       </p>
                     </button>
                   ))}
@@ -241,10 +243,10 @@ export function BriefForm({ mode }: BriefFormProps) {
               {/* Visual Reference */}
               <div>
                 <SectionLabel>
-                  Visual Reference — Which aesthetic direction resonates?
+                  {t("brief.visualReference")}
                 </SectionLabel>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Abstract aesthetic tendencies (we're not copying, just finding direction)
+                  {t("brief.visualReference.desc")}
                 </p>
                 <div className="grid grid-cols-1 gap-3">
                   {VISUAL_REFERENCE_OPTIONS.map((option) => (
@@ -261,14 +263,14 @@ export function BriefForm({ mode }: BriefFormProps) {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
+                          {optionLabel(option.value)}
                         </span>
                         {visualReference === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
+                          <span className="text-[var(--color-accent-ios-blue)] text-sm">{t("brief.selected")}</span>
                         )}
                       </div>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
+                        {optionDescription(option.value, option.description)}
                       </p>
                     </button>
                   ))}
@@ -277,9 +279,9 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Avoided AI Smell */}
               <div>
-                <SectionLabel>What AI page problems do you want to avoid?</SectionLabel>
+                <SectionLabel>{t("brief.avoidAISmell")}</SectionLabel>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                  Select the issues you most want to prevent
+                  {t("brief.avoidAISmell.desc")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {AVOIDED_AI_SMELL_OPTIONS.map((option) => (
@@ -293,7 +295,7 @@ export function BriefForm({ mode }: BriefFormProps) {
                           : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
                       )}
                     >
-                      {option.label}
+                      {optionLabel(option.value)}
                     </button>
                   ))}
                 </div>
@@ -301,7 +303,7 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Audience */}
               <div>
-                <SectionLabel>Primary Audience — Who needs to be impressed?</SectionLabel>
+                <SectionLabel>{t("brief.audience")}</SectionLabel>
                 <div className="grid grid-cols-1 gap-3">
                   {AUDIENCE_OPTIONS.map((option) => (
                     <button
@@ -317,14 +319,14 @@ export function BriefForm({ mode }: BriefFormProps) {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {option.label}
+                          {optionLabel(option.value)}
                         </span>
                         {audience === option.value && (
-                          <span className="text-[var(--color-accent-ios-blue)] text-sm">Selected</span>
+                          <span className="text-[var(--color-accent-ios-blue)] text-sm">{t("brief.selected")}</span>
                         )}
                       </div>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {option.description}
+                        {optionDescription(option.value, option.description)}
                       </p>
                     </button>
                   ))}
@@ -333,20 +335,20 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Page Goal */}
               <div>
-                <SectionLabel>Page Goal — What should this page accomplish?</SectionLabel>
+                <SectionLabel>{t("brief.pageGoal")}</SectionLabel>
                 <textarea
                   value={pageGoal}
                   onChange={(e) => setPageGoal(e.target.value)}
-                  placeholder="e.g., Drive sign-ups for the beta launch, explain the API-first approach, convince developers to try the product"
+                  placeholder={t("brief.pageGoal.placeholder")}
                   className="textarea"
                 />
               </div>
 
               {/* Desired Feeling */}
               <div>
-                <SectionLabel>Desired Feeling — Emotions to evoke</SectionLabel>
+                <SectionLabel>{t("brief.desiredFeeling")}</SectionLabel>
                 <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                  Select the emotions your page should evoke
+                  {t("brief.desiredFeeling.desc")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {DESIRED_FEELING_OPTIONS.map((feeling) => (
@@ -360,7 +362,7 @@ export function BriefForm({ mode }: BriefFormProps) {
                           : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
                       )}
                     >
-                      {feeling}
+                      {optionLabel(feeling)}
                     </button>
                   ))}
                 </div>
@@ -368,7 +370,7 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Avoided Feeling */}
               <div>
-                <SectionLabel>What to Avoid — Styles you want to prevent</SectionLabel>
+                <SectionLabel>{t("brief.avoidedFeeling")}</SectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {AVOIDED_FEELING_OPTIONS.map((feeling) => (
                     <button
@@ -381,7 +383,7 @@ export function BriefForm({ mode }: BriefFormProps) {
                           : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border)]"
                       )}
                     >
-                      {feeling}
+                      {optionLabel(feeling)}
                     </button>
                   ))}
                 </div>
@@ -389,12 +391,12 @@ export function BriefForm({ mode }: BriefFormProps) {
 
               {/* Main CTA */}
               <div>
-                <SectionLabel>Primary Call-to-Action</SectionLabel>
+                <SectionLabel>{t("brief.mainCTA")}</SectionLabel>
                 <input
                   type="text"
                   value={mainCTA}
                   onChange={(e) => setMainCTA(e.target.value)}
-                  placeholder="e.g., Start Free Trial, Get Early Access, Book Demo"
+                  placeholder={t("brief.mainCTA.placeholder")}
                   className="input"
                 />
               </div>
@@ -403,7 +405,7 @@ export function BriefForm({ mode }: BriefFormProps) {
 
           {/* Visual Intensity */}
           <div>
-            <SectionLabel>Visual Intensity</SectionLabel>
+            <SectionLabel>{t("brief.visualIntensity")}</SectionLabel>
             <div className="grid grid-cols-3 gap-3">
               {(["minimal", "balanced", "expressive"] as VisualIntensity[]).map((intensity) => (
                 <button
@@ -416,7 +418,7 @@ export function BriefForm({ mode }: BriefFormProps) {
                       : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-strong)] border border-[var(--color-border)]"
                   )}
                 >
-                  <span className="block font-medium capitalize">{intensity}</span>
+                  <span className="block font-medium">{optionLabel(intensity)}</span>
                 </button>
               ))}
             </div>
@@ -424,7 +426,7 @@ export function BriefForm({ mode }: BriefFormProps) {
 
           {/* Content Density */}
           <div>
-            <SectionLabel>Content Density</SectionLabel>
+            <SectionLabel>{t("brief.contentDensity")}</SectionLabel>
             <div className="grid grid-cols-3 gap-3">
               {(["light", "standard", "dense"] as ContentDensity[]).map((density) => (
                 <button
@@ -437,7 +439,7 @@ export function BriefForm({ mode }: BriefFormProps) {
                       : "bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-strong)] border border-[var(--color-border)]"
                   )}
                 >
-                  <span className="block font-medium capitalize">{density}</span>
+                  <span className="block font-medium">{optionLabel(density)}</span>
                 </button>
               ))}
             </div>
@@ -445,7 +447,7 @@ export function BriefForm({ mode }: BriefFormProps) {
 
           {/* Output Tool */}
           <div>
-            <SectionLabel>Output Tool — Which AI tool will you use?</SectionLabel>
+            <SectionLabel>{t("brief.outputTool")}</SectionLabel>
             <select
               value={outputTool}
               onChange={(e) => setOutputTool(e.target.value as ToolType)}
@@ -465,7 +467,7 @@ export function BriefForm({ mode }: BriefFormProps) {
               className="w-full"
               size="lg"
             >
-              <span>{isLightMode ? "Find My Direction" : "Generate Design Directions"}</span>
+              <span>{isLightMode ? t("brief.submit.light") : t("brief.submit.full")}</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </LiquidButton>
           </div>

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:i18n": "node scripts/check-i18n-leaks.mjs",
+    "check:bilingual": "node scripts/check-bilingual-mix.mjs"
   },
   "dependencies": {
     "next": "^14.2.0",

@@ -4,36 +4,44 @@
 
 "use client";
 
-import { HistoryItem } from "@/lib/types";
+import { HistoryEventType, HistoryItem } from "@/lib/types";
 import { useDesignStore } from "@/store/use-design-store";
 import { GlassCard, GlassCardContent } from "@/components/ui/glass-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { cn, getRelativeTime } from "@/lib/utils";
-import { History, Trash2, Lightbulb, Palette, Copy, Stethoscope, FileDown } from "lucide-react";
+import { TranslationKey } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import { History, Trash2, Lightbulb, Palette, Copy, Stethoscope, FileDown, FolderPlus, FilePenLine, LucideIcon } from "lucide-react";
 
-const historyTypeIcons = {
+const historyTypeIcons: Record<HistoryEventType, LucideIcon> = {
   brief_created: Lightbulb,
   direction_selected: Palette,
   prompt_copied: Copy,
   diagnosis_performed: Stethoscope,
   pack_exported: FileDown,
+  project_created: FolderPlus,
+  project_updated: FilePenLine,
 };
 
-const historyTypeLabels = {
-  brief_created: "Brief Created",
-  direction_selected: "Direction Selected",
-  prompt_copied: "Prompt Copied",
-  diagnosis_performed: "Diagnosis Performed",
-  pack_exported: "Pack Exported",
+const historyTypeLabelKeys: Record<HistoryEventType, TranslationKey> = {
+  brief_created: "history.brief_created",
+  direction_selected: "history.direction_selected",
+  prompt_copied: "history.prompt_copied",
+  diagnosis_performed: "history.diagnosis_performed",
+  pack_exported: "history.pack_exported",
+  project_created: "history.project_created",
+  project_updated: "history.project_updated",
 };
 
-const historyTypeColors = {
+const historyTypeColors: Record<HistoryEventType, string> = {
   brief_created: "text-amber-500",
   direction_selected: "text-blue-500",
   prompt_copied: "text-green-500",
   diagnosis_performed: "text-purple-500",
   pack_exported: "text-cyan-500",
+  project_created: "text-emerald-500",
+  project_updated: "text-indigo-500",
 };
 
 interface HistoryPanelProps {
@@ -42,6 +50,7 @@ interface HistoryPanelProps {
 
 export function HistoryPanel({ className }: HistoryPanelProps) {
   const { history, clearHistory } = useDesignStore();
+  const { t } = useI18n();
 
   return (
     <GlassCard className={cn("", className)}>
@@ -50,7 +59,7 @@ export function HistoryPanel({ className }: HistoryPanelProps) {
           <div className="flex items-center gap-3">
             <History className="w-5 h-5 text-[var(--color-text-secondary)]" />
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              History
+              {t("history.title")}
             </h3>
           </div>
           {history.length > 0 && (
@@ -61,7 +70,7 @@ export function HistoryPanel({ className }: HistoryPanelProps) {
               className="text-rose-500 hover:text-rose-600 hover:bg-rose-50"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Clear
+              {t("history.clear")}
             </LiquidButton>
           )}
         </div>
@@ -71,8 +80,8 @@ export function HistoryPanel({ className }: HistoryPanelProps) {
         {history.length === 0 ? (
           <EmptyState
             icon={History}
-            title="No history yet"
-            description="Your activity will appear here"
+            title={t("history.empty")}
+            description={t("history.empty.desc")}
           />
         ) : (
           <div className="space-y-3">
@@ -90,7 +99,7 @@ export function HistoryPanel({ className }: HistoryPanelProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                      {historyTypeLabels[item.type]}
+                      {t(historyTypeLabelKeys[item.type])}
                     </p>
                     <p className="text-xs text-[var(--color-text-secondary)]">
                       {getRelativeTime(item.timestamp)}

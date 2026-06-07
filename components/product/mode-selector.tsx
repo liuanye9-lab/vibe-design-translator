@@ -7,7 +7,8 @@
 import { cn } from "@/lib/utils";
 import { UserMode } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
-import { LiquidButton } from "@/components/ui/liquid-button";
+import { TranslationKey } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { Lightbulb, Compass, Stethoscope } from "lucide-react";
 
 interface ModeSelectorProps {
@@ -18,25 +19,32 @@ interface ModeSelectorProps {
 const modes = [
   {
     id: "has-idea" as UserMode,
-    title: "I have an idea",
-    description: "Describe your vision in detail. Perfect for when you have a clear concept but need help translating it into design specs.",
+    titleKey: "mode.hasIdea.title",
+    descriptionKey: "mode.hasIdea.desc",
     icon: Lightbulb,
   },
   {
     id: "no-idea" as UserMode,
-    title: "I have no direction",
-    description: "Get inspired with curated design directions. Ideal for exploration and finding the right aesthetic.",
+    titleKey: "mode.noIdea.title",
+    descriptionKey: "mode.noIdea.desc",
     icon: Compass,
   },
   {
     id: "diagnose" as UserMode,
-    title: "Diagnose my page",
-    description: "Identify issues with your current design. Best for fixing existing pages that feel generic.",
+    titleKey: "mode.diagnose.title",
+    descriptionKey: "mode.diagnose.desc",
     icon: Stethoscope,
   },
-];
+] satisfies Array<{
+  id: UserMode;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  icon: typeof Lightbulb;
+}>;
 
 export function ModeSelector({ currentMode, onSelectMode }: ModeSelectorProps) {
+  const { t } = useI18n();
+
   return (
     <div className="grid md:grid-cols-3 gap-6">
       {modes.map((mode) => {
@@ -65,10 +73,10 @@ export function ModeSelector({ currentMode, onSelectMode }: ModeSelectorProps) {
               <Icon className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-              {mode.title}
+              {t(mode.titleKey)}
             </h3>
             <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
-              {mode.description}
+              {t(mode.descriptionKey)}
             </p>
           </GlassCard>
         );

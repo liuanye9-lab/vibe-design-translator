@@ -8,12 +8,16 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
-import { Sparkles, History, Settings, BookOpen, ArrowLeft } from "lucide-react";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import { TranslationKey } from "@/lib/i18n";
+import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder, Activity } from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Sparkles },
-  { href: "/patterns", label: "Patterns", icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/", labelKey: "nav.home", icon: Sparkles },
+  { href: "/workspace", labelKey: "nav.workspace", icon: Folder },
+  { href: "/agent-runs", labelKey: "nav.runs", icon: Activity },
+  { href: "/patterns", labelKey: "nav.patterns", icon: BookOpen },
+  { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 interface TopNavProps {
@@ -31,6 +35,7 @@ export function TopNav({
 }: TopNavProps) {
   const pathname = usePathname();
   const history = useDesignStore((state) => state.history);
+  const { locale, setLocale, t } = useI18n();
 
   return (
     <nav
@@ -56,7 +61,7 @@ export function TopNav({
                 )}
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back</span>
+                <span className="hidden sm:inline">{t("nav.back")}</span>
               </Link>
             ) : (
               <Link
@@ -67,7 +72,7 @@ export function TopNav({
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-semibold text-[var(--color-text-primary)] hidden sm:inline">
-                  Vibe Translator
+                  {t("brand.short")}
                 </span>
               </Link>
             )}
@@ -98,7 +103,7 @@ export function TopNav({
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey as TranslationKey)}</span>
                 </Link>
               );
             })}
@@ -114,6 +119,19 @@ export function TopNav({
                 </span>
               </div>
             )}
+
+            <button
+              onClick={() => setLocale(locale === "zh" ? "en" : "zh")}
+              className={cn(
+                "hidden sm:inline-flex items-center justify-center rounded-xl px-3 py-2",
+                "text-xs font-semibold text-[var(--color-text-secondary)]",
+                "border border-[var(--color-border)] bg-white/50 hover:bg-[var(--color-surface)]",
+                "transition-colors duration-200"
+              )}
+              aria-label="Switch language"
+            >
+              {locale === "zh" ? t("language.en") : t("language.zh")}
+            </button>
 
             {/* Mobile menu button */}
             <button

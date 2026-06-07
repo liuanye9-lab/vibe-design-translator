@@ -4,22 +4,26 @@
 
 "use client";
 
-import { DiagnosisReport, ToolType } from "@/lib/types";
+import { DiagnosisReport, ScreenshotAsset, ToolType } from "@/lib/types";
 import { TOOL_LABELS } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/glass-card";
 import { ScoreRing } from "@/components/ui/score-ring";
 import { ScoreBar } from "@/components/ui/score-bar";
 import { CopyButton } from "@/components/ui/copy-button";
 import { LiquidButton } from "@/components/ui/liquid-button";
-import { getScoreLabel, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { AlertTriangle, CheckCircle, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { BeforeAfterDiffRail } from "@/components/visuals/before-after-diff-rail";
+import { ScreenshotEvidenceStrip } from "@/components/visuals/screenshot-evidence-strip";
 
 interface DiagnosisReportViewProps {
   report: DiagnosisReport;
   selectedTool: ToolType;
   onToolChange: (tool: ToolType) => void;
   onStartNew?: () => void;
+  screenshotAsset?: ScreenshotAsset | null;
   className?: string;
 }
 
@@ -28,20 +32,26 @@ export function DiagnosisReportView({
   selectedTool,
   onToolChange,
   onStartNew,
+  screenshotAsset,
   className,
 }: DiagnosisReportViewProps) {
   const router = useRouter();
-  const scoreLabel = getScoreLabel(report.overallScore);
+  const { t } = useI18n();
+  const scoreLabel = report.overallScore >= 70
+    ? t("score.good")
+    : report.overallScore >= 50
+    ? t("score.medium")
+    : t("score.low");
   const refactorPrompt = report.refactorPrompts[selectedTool];
 
   const scoreCategories = [
-    { key: "aiTemplateFeeling", label: "AI Template Feeling" },
-    { key: "visualHierarchy", label: "Visual Hierarchy" },
-    { key: "colorControl", label: "Color Control" },
-    { key: "typographySystem", label: "Typography System" },
-    { key: "spacingSystem", label: "Spacing System" },
-    { key: "interactionRestraint", label: "Interaction Restraint" },
-    { key: "conversionClarity", label: "Conversion Clarity" },
+    { key: "aiTemplateFeeling", label: "AI 模板感" },
+    { key: "visualHierarchy", label: "视觉层级" },
+    { key: "colorControl", label: "颜色控制" },
+    { key: "typographySystem", label: "字体系统" },
+    { key: "spacingSystem", label: "间距系统" },
+    { key: "interactionRestraint", label: "交互克制" },
+    { key: "conversionClarity", label: "转化清晰度" },
   ];
 
   return (
@@ -49,27 +59,34 @@ export function DiagnosisReportView({
       {/* Overall Score */}
       <GlassCard className="p-8">
         <div className="flex flex-col md:flex-row items-center gap-8">
-          <ScoreRing value={report.overallScore} size="lg" label="Overall" />
+          <ScoreRing value={report.overallScore} size="lg" label={t("diagnosis.report.overall")} />
           <div className="flex-1 text-center md:text-left">
             <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-2">
               {scoreLabel} - {report.overallScore}/100
             </h2>
             <p className="text-[var(--color-text-secondary)]">
               {report.overallScore >= 70
-                ? "Your page has a solid foundation with some room for improvement."
+                ? t("score.good.desc")
                 : report.overallScore >= 50
-                ? "Your page shows signs of generic design. Consider the fixes below."
-                : "Your page likely looks like an AI-generated template. Urgent redesign recommended."}
+                ? t("score.medium.desc")
+                : t("score.low.desc")}
             </p>
           </div>
         </div>
       </GlassCard>
 
+      <ScreenshotEvidenceStrip
+        screenshotAsset={screenshotAsset}
+        focusZones={report.focusZones}
+      />
+
+      <BeforeAfterDiffRail items={report.beforeAfter ?? []} />
+
       {/* Score Breakdown */}
       <GlassCard>
         <GlassCardHeader>
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Score Breakdown
+            {t("diagnosis.report.breakdown")}
           </h3>
         </GlassCardHeader>
         <GlassCardContent className="space-y-6">
@@ -89,7 +106,7 @@ export function DiagnosisReportView({
         <GlassCardHeader className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500" />
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Key Findings
+            {t("diagnosis.report.findings")}
           </h3>
         </GlassCardHeader>
         <GlassCardContent>
@@ -111,7 +128,7 @@ export function DiagnosisReportView({
         <GlassCardHeader className="flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-500" />
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Recommended Fixes
+            {t("diagnosis.report.fixes")}
           </h3>
         </GlassCardHeader>
         <GlassCardContent>
@@ -133,7 +150,7 @@ export function DiagnosisReportView({
         <GlassCardHeader>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Refactor Prompt for {TOOL_LABELS[selectedTool]}
+              {t("diagnosis.report.prompt", { tool: TOOL_LABELS[selectedTool] })}
             </h3>
             <CopyButton value={refactorPrompt} />
           </div>
@@ -165,11 +182,11 @@ export function DiagnosisReportView({
       <div className="flex gap-4">
         {onStartNew && (
           <LiquidButton variant="secondary" onClick={onStartNew} className="flex-1">
-            Diagnose Another Page
+            {t("diagnosis.report.another")}
           </LiquidButton>
         )}
         <LiquidButton onClick={() => router.push("/")} className="flex-1">
-          Start Fresh
+          {t("diagnosis.report.startFresh")}
           <ArrowRight className="w-4 h-4 ml-2" />
         </LiquidButton>
       </div>

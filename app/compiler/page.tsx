@@ -13,11 +13,13 @@ import { SectionHeading, SectionLabel } from "@/components/ui/section-heading";
 import { PromptOutput } from "@/components/product/prompt-output";
 import { useDesignStore } from "@/store/use-design-store";
 import { generateExecutionPack } from "@/lib/prompt-templates";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { getDirectionById } from "@/lib/design-directions";
 import { DesignExecutionPack } from "@/lib/types";
 
 export default function CompilerPage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { brief, selectedDirectionId, selectedTool, setSelectedTool, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
   const [pack, setPack] = useState<DesignExecutionPack | null>(null);
 
@@ -33,11 +35,11 @@ export default function CompilerPage() {
     if (isHydrated && brief && selectedDirectionId) {
       const direction = getDirectionById(selectedDirectionId);
       if (direction) {
-        const executionPack = generateExecutionPack(brief, direction);
+        const executionPack = generateExecutionPack(brief, direction, locale);
         setPack(executionPack);
       }
     }
-  }, [isHydrated, brief, selectedDirectionId]);
+  }, [isHydrated, brief, selectedDirectionId, locale]);
 
   // If no pack data, show message
   if (!isHydrated || !pack) {
@@ -47,13 +49,13 @@ export default function CompilerPage() {
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <p className="text-[var(--color-text-secondary)] mb-4">
-                No design brief found. Start from the home page.
+                {t("compiler.empty")}
               </p>
               <button
                 onClick={() => router.push("/")}
                 className="px-4 py-2 bg-[var(--color-accent-ios-blue)] text-white rounded-xl"
               >
-                Go to Home
+                {t("compiler.goHome")}
               </button>
             </div>
           </PageContainer>
@@ -74,11 +76,11 @@ export default function CompilerPage() {
         <PageContainer className="py-12">
           <div className="mb-8">
             <SectionLabel>
-              Prompt Compiler
+              {t("compiler.kicker")}
             </SectionLabel>
 
-            <SectionHeading subtitle={`View and copy prompts for ${brief?.productName} in ${direction.name} direction.`}>
-              Tool-Specific Prompts
+            <SectionHeading subtitle={t("compiler.subtitle", { product: brief?.productName ?? "", direction: direction.name })}>
+              {t("compiler.title")}
             </SectionHeading>
           </div>
 
@@ -88,7 +90,7 @@ export default function CompilerPage() {
               <span className="font-medium text-[var(--color-text-primary)]">{brief?.productName}</span>
               {" — "}
               <span className="text-[var(--color-accent-ios-blue)]">{direction.name}</span>
-              {" direction"}
+              {` ${t("pack.directionSuffix")}`}
             </p>
           </div>
 

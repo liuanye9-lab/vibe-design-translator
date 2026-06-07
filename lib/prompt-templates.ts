@@ -14,6 +14,7 @@ import {
   DesignBrief,
   DesignDirection,
   DesignExecutionPack,
+  Locale,
   ToolType,
 } from "./types";
 import { TOOL_LABELS } from "./constants";
@@ -27,7 +28,8 @@ import { TOOL_LABELS } from "./constants";
  */
 export function generateExecutionPack(
   brief: DesignBrief,
-  direction: DesignDirection
+  direction: DesignDirection,
+  locale: Locale = "zh"
 ): DesignExecutionPack {
   const pack: DesignExecutionPack = {
     strategy: generateStrategy(brief, direction),
@@ -51,6 +53,7 @@ export function generateExecutionPack(
     productCategory: brief.productCategory,
     selectedDirection: direction.name,
     generatedAt: new Date().toISOString(),
+    locale,
   };
 
   return pack;

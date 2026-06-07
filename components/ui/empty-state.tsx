@@ -9,15 +9,23 @@ import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import { LiquidButton } from "./liquid-button";
 
+interface EmptyStateActionConfig {
+  label: string;
+  onClick: () => void;
+}
+
+type EmptyStateAction = ReactNode | EmptyStateActionConfig;
+
 interface EmptyStateProps {
   icon?: LucideIcon;
   title: string;
   description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  action?: EmptyStateAction;
   className?: string;
+}
+
+function isActionConfig(action: EmptyStateAction | undefined): action is EmptyStateActionConfig {
+  return typeof action === "object" && action !== null && "label" in action && "onClick" in action;
 }
 
 export function EmptyState({
@@ -27,6 +35,14 @@ export function EmptyState({
   action,
   className,
 }: EmptyStateProps) {
+  const renderedAction = isActionConfig(action) ? (
+    <LiquidButton variant="secondary" onClick={action.onClick}>
+      {action.label}
+    </LiquidButton>
+  ) : (
+    action
+  );
+
   return (
     <div
       className={cn(
@@ -47,11 +63,7 @@ export function EmptyState({
           {description}
         </p>
       )}
-      {action && (
-        <LiquidButton variant="secondary" onClick={action.onClick}>
-          {action.label}
-        </LiquidButton>
-      )}
+      {renderedAction}
     </div>
   );
 }

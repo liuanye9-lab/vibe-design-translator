@@ -8,7 +8,8 @@ import { useState } from "react";
 import { GlassCard, GlassCardContent } from "@/components/ui/glass-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { SectionLabel } from "@/components/ui/section-heading";
-import { PAIN_POINT_OPTIONS } from "@/lib/constants";
+import { PAGE_TYPE_OPTIONS, PAIN_POINT_OPTIONS } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 import { TagGroup, TagPill } from "@/components/ui/tag-pill";
 import { Upload, ArrowRight } from "lucide-react";
@@ -23,6 +24,7 @@ interface DiagnosisFormProps {
 }
 
 export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
+  const { t, optionLabel } = useI18n();
   const [pageType, setPageType] = useState("");
   const [pageDescription, setPageDescription] = useState("");
   const [primaryPainPoint, setPrimaryPainPoint] = useState<string[]>([]);
@@ -48,40 +50,37 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
       <div className="space-y-8">
         {/* Page Type */}
         <div>
-          <SectionLabel>Page Type</SectionLabel>
+          <SectionLabel>{t("diagnosis.form.pageType")}</SectionLabel>
           <select
             value={pageType}
             onChange={(e) => setPageType(e.target.value)}
             className="select"
           >
-            <option value="">Select page type</option>
-            <option value="landing-page">Landing Page</option>
-            <option value="product-page">Product Page</option>
-            <option value="pricing-page">Pricing Page</option>
-            <option value="about-page">About Page</option>
-            <option value="contact-page">Contact Page</option>
-            <option value="blog-post">Blog Post</option>
-            <option value="dashboard">Dashboard</option>
-            <option value="other">Other</option>
+            <option value="">{t("diagnosis.form.pageType.placeholder")}</option>
+            {PAGE_TYPE_OPTIONS.map((pageTypeOption) => (
+              <option key={pageTypeOption} value={pageTypeOption}>
+                {optionLabel(pageTypeOption)}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Page Description */}
         <div>
-          <SectionLabel>Page Description</SectionLabel>
+          <SectionLabel>{t("diagnosis.form.description")}</SectionLabel>
           <textarea
             value={pageDescription}
             onChange={(e) => setPageDescription(e.target.value)}
-            placeholder="Describe your current page. What is it for? What does it contain?"
+            placeholder={t("diagnosis.form.description.placeholder")}
             className="textarea"
           />
         </div>
 
         {/* Primary Pain Points */}
         <div>
-          <SectionLabel>Primary Pain Points</SectionLabel>
+          <SectionLabel>{t("diagnosis.form.painPoints")}</SectionLabel>
           <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-            Select all that apply
+            {t("diagnosis.form.painPoints.desc")}
           </p>
           <TagGroup>
             {PAIN_POINT_OPTIONS.map((painPoint) => (
@@ -90,7 +89,7 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
                 active={primaryPainPoint.includes(painPoint)}
                 onClick={() => handleTogglePainPoint(painPoint)}
               >
-                {painPoint}
+                {optionLabel(painPoint)}
               </TagPill>
             ))}
           </TagGroup>
@@ -98,7 +97,7 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
 
         {/* Screenshot Upload (Placeholder) */}
         <div>
-          <SectionLabel>Screenshot (Optional)</SectionLabel>
+          <SectionLabel>{t("diagnosis.screenshot.title")}</SectionLabel>
           <div
             className={cn(
               "border-2 border-dashed border-[var(--color-border)] rounded-2xl p-8",
@@ -108,8 +107,7 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
             )}
           >
             <Upload className="w-8 h-8" />
-            <span className="text-sm">Screenshot upload coming soon</span>
-            <span className="text-xs">For now, we analyze based on your description</span>
+            <span className="text-sm">{t("diagnosis.screenshot.desc")}</span>
           </div>
         </div>
 
@@ -120,7 +118,7 @@ export function DiagnosisForm({ onSubmit, isLoading }: DiagnosisFormProps) {
           size="lg"
           isLoading={isLoading}
         >
-          <span>{isLoading ? "Analyzing..." : "Run Diagnosis"}</span>
+          <span>{isLoading ? t("diagnosis.form.loading") : t("diagnosis.form.submit")}</span>
           <ArrowRight className="w-5 h-5 ml-2" />
         </LiquidButton>
       </div>

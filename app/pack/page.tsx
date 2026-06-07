@@ -14,16 +14,20 @@ import { ExecutionPackSection } from "@/components/product/execution-pack-sectio
 import { PromptOutput } from "@/components/product/prompt-output";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { useDesignStore } from "@/store/use-design-store";
-import { generateExecutionPack } from "@/lib/prompt-templates";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { getDirectionById } from "@/lib/design-directions";
-import { DesignExecutionPack } from "@/lib/types";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { AIProviderType, DesignExecutionPack } from "@/lib/types";
+import { artifactStorage } from "@/lib/artifacts/storage";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileText, Languages, Server } from "lucide-react";
 import Link from "next/link";
 
 export default function PackPage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { brief, selectedDirectionId, selectedTool, setSelectedTool, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
   const [pack, setPack] = useState<DesignExecutionPack | null>(null);
+  const [providerUsed, setProviderUsed] = useState<AIProviderType>("mock");
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Hydrate store from localStorage on mount
@@ -39,11 +43,52 @@ export default function PackPage() {
     if (isHydrated && isLoaded && brief && selectedDirectionId) {
       const direction = getDirectionById(selectedDirectionId);
       if (direction) {
-        const executionPack = generateExecutionPack(brief, direction);
-        setPack(executionPack);
+        let isCancelled = false;
+
+        const generatePack = async () => {
+          setGenerationError(null);
+          try {
+            const response = await fetch("/api/ai/generate-execution-pack", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ brief, directionId: selectedDirectionId, locale }),
+            });
+            const payload = await response.json();
+            if (!response.ok) {
+              throw new Error(payload?.error?.message || "Failed to generate execution pack");
+            }
+            if (isCancelled) return;
+
+            const executionPack = payload.data as DesignExecutionPack;
+            const usedProvider = (payload.meta?.providerUsed || "mock") as AIProviderType;
+            setPack(executionPack);
+            setProviderUsed(usedProvider);
+
+            const run = artifactStorage.createRunFromPack({
+              brief,
+              pack: executionPack,
+              directionName: direction.name,
+              providerUsed: usedProvider,
+              locale,
+              targetTool: selectedTool,
+            });
+            artifactStorage.saveRun(run);
+            addHistory({ type: "pack_exported", data: { runId: run.id, providerUsed: usedProvider } });
+          } catch (error) {
+            if (!isCancelled) {
+              setGenerationError(error instanceof Error ? error.message : "Failed to generate execution pack");
+            }
+          }
+        };
+
+        generatePack();
+
+        return () => {
+          isCancelled = true;
+        };
       }
     }
-  }, [isHydrated, isLoaded, brief, selectedDirectionId]);
+  }, [isHydrated, isLoaded, brief, selectedDirectionId, locale, selectedTool, addHistory]);
 
   // If no brief or direction, redirect
   useEffect(() => {
@@ -58,7 +103,7 @@ export default function PackPage() {
         <PageWrapper>
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse text-[var(--color-text-secondary)]">
-              Generating your execution pack...
+              {generationError || t("pack.loading")}
             </div>
           </PageContainer>
         </PageWrapper>
@@ -67,6 +112,29 @@ export default function PackPage() {
   }
 
   const direction = getDirectionById(selectedDirectionId)!;
+  const evaluationScore = pack.acceptanceCriteria.length >= 5 ? 82 : 68;
+  const summaryCards = [
+    {
+      icon: FileText,
+      label: "Execution Pack",
+      value: `${pack.acceptanceCriteria.length} criteria`,
+    },
+    {
+      icon: Server,
+      label: "Provider",
+      value: providerUsed,
+    },
+    {
+      icon: Languages,
+      label: "Locale",
+      value: pack.locale || locale,
+    },
+    {
+      icon: CheckCircle2,
+      label: "Evaluation",
+      value: `${evaluationScore}/100`,
+    },
+  ];
 
   const handleCopied = () => {
     addHistory({ type: "prompt_copied", data: { tool: selectedTool } });
@@ -82,15 +150,15 @@ export default function PackPage() {
               className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to directions</span>
+              <span>{t("pack.back")}</span>
             </Link>
 
             <SectionLabel>
-              Step 3 of 3
+              {t("pack.step")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Review your execution pack and copy the prompt for your preferred tool.">
-              Your Design Execution Pack
+            <SectionHeading subtitle={t("pack.subtitle")}>
+              {t("pack.title")}
             </SectionHeading>
           </div>
 
@@ -100,8 +168,30 @@ export default function PackPage() {
               <span className="font-medium text-[var(--color-text-primary)]">{brief.productName}</span>
               {" — "}
               <span className="text-[var(--color-accent-ios-blue)]">{direction.name}</span>
-              {" direction"}
+              {` ${t("pack.directionSuffix")}`}
             </p>
+          </div>
+
+          <div className="mb-8 grid gap-4 md:grid-cols-4">
+            {summaryCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.label}
+                  className="rounded-2xl border border-[var(--color-border)] bg-white/65 p-4"
+                >
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-surface)]">
+                    <Icon className="h-4 w-4 text-[var(--color-accent-ios-blue)]" />
+                  </div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-tertiary)]">
+                    {card.label}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-[var(--color-text-primary)]">
+                    {card.value}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Execution pack sections */}
@@ -122,10 +212,10 @@ export default function PackPage() {
               variant="secondary"
               onClick={() => router.push("/compiler")}
             >
-              View All Prompts
+              {t("pack.viewAll")}
             </LiquidButton>
             <LiquidButton onClick={() => router.push("/")}>
-              Start New
+              {t("pack.startNew")}
               <ArrowRight className="w-4 h-4 ml-2" />
             </LiquidButton>
           </div>

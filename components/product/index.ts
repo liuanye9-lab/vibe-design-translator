@@ -13,3 +13,4 @@ export { DiagnosisReportView } from "./diagnosis-report";
 export { PatternCard } from "./pattern-card";
 export { PatternDetailDrawer } from "./pattern-detail-drawer";
 export { HistoryPanel } from "./history-panel";
+export { ScreenshotUploader } from "./screenshot-uploader";

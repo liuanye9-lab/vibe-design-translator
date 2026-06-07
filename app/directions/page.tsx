@@ -11,14 +11,17 @@ import { PageContainer } from "@/components/layout";
 import { PageWrapper } from "@/components/layout";
 import { SectionHeading, SectionLabel } from "@/components/ui/section-heading";
 import { DirectionCard } from "@/components/product/direction-card";
+import { DirectionMoodboardTriptych } from "@/components/visuals/direction-moodboard-triptych";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { useDesignStore } from "@/store/use-design-store";
 import { DESIGN_DIRECTIONS, getDirectionById } from "@/lib/design-directions";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function DirectionsPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const { brief, selectedDirectionId, setSelectedDirection, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -43,7 +46,7 @@ export default function DirectionsPage() {
         <PageWrapper>
           <PageContainer className="flex items-center justify-center min-h-[60vh]">
             <div className="animate-pulse text-[var(--color-text-secondary)]">
-              Loading...
+              {t("directions.loading")}
             </div>
           </PageContainer>
         </PageWrapper>
@@ -54,6 +57,8 @@ export default function DirectionsPage() {
   const handleSelectDirection = (directionId: string) => {
     setSelectedDirection(directionId);
   };
+
+  const selectedDirection = selectedDirectionId ? getDirectionById(selectedDirectionId) : null;
 
   const handleContinue = () => {
     if (selectedDirectionId) {
@@ -75,15 +80,15 @@ export default function DirectionsPage() {
               className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to brief</span>
+              <span>{t("directions.back")}</span>
             </Link>
 
             <SectionLabel>
-              Step 2 of 3
+              {t("directions.step")}
             </SectionLabel>
 
-            <SectionHeading subtitle="Choose a design direction that matches your vision. Each direction comes with a complete strategy and visual system.">
-              Design Direction
+            <SectionHeading subtitle={t("directions.subtitle")}>
+              {t("directions.title")}
             </SectionHeading>
           </div>
 
@@ -108,6 +113,13 @@ export default function DirectionsPage() {
             ))}
           </div>
 
+          {selectedDirection && (
+            <DirectionMoodboardTriptych
+              direction={selectedDirection}
+              className="mb-12"
+            />
+          )}
+
           {/* Continue button */}
           <div className="flex justify-center">
             <LiquidButton
@@ -116,7 +128,7 @@ export default function DirectionsPage() {
               size="lg"
               className="min-w-[200px]"
             >
-              <span>Generate Pack</span>
+              <span>{t("directions.generate")}</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </LiquidButton>
           </div>

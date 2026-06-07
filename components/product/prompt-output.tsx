@@ -8,6 +8,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ToolType } from "@/lib/types";
 import { TOOL_LABELS } from "@/lib/constants";
+import { useI18n } from "@/lib/i18n/use-i18n";
 import { GlassCard, GlassCardHeader, GlassCardContent } from "@/components/ui/glass-card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { LiquidButton } from "@/components/ui/liquid-button";
@@ -42,6 +43,7 @@ export function PromptOutput({
   onCopied,
   className,
 }: PromptOutputProps) {
+  const { t } = useI18n();
   const currentPrompt = prompts[currentTool];
   const Icon = toolIcons[currentTool];
 
@@ -55,10 +57,10 @@ export function PromptOutput({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                {TOOL_LABELS[currentTool]} Prompt
+                {t("prompt.title", { tool: TOOL_LABELS[currentTool] })}
               </h3>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                Copy and use in {TOOL_LABELS[currentTool]}
+                {t("prompt.copyHint", { tool: TOOL_LABELS[currentTool] })}
               </p>
             </div>
           </div>
