@@ -118,6 +118,16 @@ export interface DirectionRecommendation {
   directionId: string;
   reason: string;
   confidence: "high" | "medium" | "low";
+  score?: number;
+  keySignals?: string[];
+  materialPatternIds?: string[];
+}
+
+export interface DirectionAgentResult {
+  summary: string;
+  recommendations: DirectionRecommendation[];
+  provider: string;
+  fallback: boolean;
 }
 
 // ============================================================

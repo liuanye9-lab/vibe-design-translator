@@ -10,6 +10,7 @@ import React from "react";
 
 interface DesignPatternPreviewProps {
   patternId: string;
+  animated?: boolean;
   title?: string;
   explanation?: string;
   className?: string;
@@ -17,6 +18,7 @@ interface DesignPatternPreviewProps {
 
 export function DesignPatternPreview({
   patternId,
+  animated = true,
   title,
   explanation,
   className = "",
@@ -53,7 +55,11 @@ export function DesignPatternPreview({
   };
 
   return (
-    <div className={`rounded-xl overflow-hidden ${className}`}>
+    <div
+      className={`rounded-xl overflow-hidden ${animated ? "motion-preview" : ""} ${className}`}
+      data-pattern-id={patternId}
+      data-running={animated ? "true" : "false"}
+    >
       {title && (
         <div className="px-3 py-2 bg-white/50 backdrop-blur-sm border-b border-gray-100">
           <h4 className="text-xs font-medium text-gray-700">{title}</h4>

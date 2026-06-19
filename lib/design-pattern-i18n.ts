@@ -167,6 +167,11 @@ export function localizePatterns(patterns: DesignPattern[], locale: Locale): Des
   return patterns.map((pattern) => localizePattern(pattern, locale));
 }
 
+export function getPatternDisplayNameById(patternId: string, locale: Locale): string {
+  const localized = locale === "zh" ? zhPatternText[patternId] : undefined;
+  return localized?.name || patternId.toUpperCase();
+}
+
 export function getPatternLabels(locale: Locale) {
   return locale === "zh"
     ? {
@@ -176,6 +181,9 @@ export function getPatternLabels(locale: Locale) {
         layoutAdvice: "布局建议",
         interactionAdvice: "交互建议",
         promptFragment: "提示词片段",
+        preview: "模式预览",
+        motionPreview: "动效预览",
+        staticPreview: "静态预览",
         copy: "复制",
         avoid: "避坑提醒",
       }
@@ -186,6 +194,9 @@ export function getPatternLabels(locale: Locale) {
         layoutAdvice: "Layout Advice",
         interactionAdvice: "Interaction Advice",
         promptFragment: "Prompt Fragment",
+        preview: "Pattern Preview",
+        motionPreview: "Motion Preview",
+        staticPreview: "Static Preview",
         copy: "Copy",
         avoid: "What to Avoid",
       };

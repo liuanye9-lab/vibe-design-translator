@@ -20,13 +20,14 @@ import {
 } from "@/lib/design-pattern-i18n";
 import { DesignPattern } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/use-i18n";
-import { Search, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Pause, Play, Search } from "lucide-react";
 
 export default function PatternsPage() {
   const { t, locale } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState<PatternCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPattern, setSelectedPattern] = useState<DesignPattern | null>(null);
+  const [animatedPreview, setAnimatedPreview] = useState(true);
 
   const filteredPatterns = useMemo(() => {
     let patterns = localizePatterns(DESIGN_PATTERNS, locale);
@@ -69,15 +70,31 @@ export default function PatternsPage() {
           {/* Search and filter */}
           <div className="mb-8 space-y-4">
             {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-secondary)]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("patterns_search")}
-                className="input pl-12"
-              />
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-secondary)]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t("patterns_search")}
+                  className="input pl-12"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setAnimatedPreview((value) => !value)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-white/70 px-4 py-3 text-sm font-medium text-[var(--color-text-primary)] transition-colors hover:bg-white"
+              >
+                {animatedPreview ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {animatedPreview
+                  ? locale === "zh"
+                    ? "动效预览"
+                    : "Motion preview"
+                  : locale === "zh"
+                  ? "静态预览"
+                  : "Static preview"}
+              </button>
             </div>
 
             {/* Category filter */}
@@ -100,6 +117,7 @@ export default function PatternsPage() {
               <PatternCard
                 key={pattern.id}
                 pattern={pattern}
+                animatedPreview={animatedPreview}
                 onSelect={() => setSelectedPattern(pattern)}
               />
             ))}

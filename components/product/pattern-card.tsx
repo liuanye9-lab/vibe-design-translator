@@ -18,6 +18,7 @@ import {
 
 interface PatternCardProps {
   pattern: DesignPattern;
+  animatedPreview?: boolean;
   onSelect: () => void;
   className?: string;
 }
@@ -36,7 +37,7 @@ const categoryColors = {
   Interaction: "from-green-500 to-emerald-500",
 };
 
-export function PatternCard({ pattern, onSelect, className }: PatternCardProps) {
+export function PatternCard({ pattern, animatedPreview = true, onSelect, className }: PatternCardProps) {
   const { locale } = useI18n();
   const labels = getPatternLabels(locale);
   const Icon = categoryIcons[pattern.category as keyof typeof categoryIcons] || Lightbulb;
@@ -100,7 +101,8 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
       {/* Pattern Preview */}
       <DesignPatternPreview
         patternId={pattern.id}
-        title="模式预览"
+        animated={animatedPreview}
+        title={animatedPreview ? labels.motionPreview : labels.preview}
         className="border border-[var(--color-border)]"
       />
     </GlassCard>

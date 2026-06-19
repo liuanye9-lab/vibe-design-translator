@@ -36,11 +36,11 @@ const sectionIcons = {
 
 const sectionTitleKeys = {
   strategy: "pack_strategy",
-  pageStructure: "pack_structure",
-  visualSystem: "pack_visual",
-  interactionSystem: "pack_interaction",
-  acceptanceCriteria: "pack_acceptance",
-  antiAILookChecklist: "pack_anti_ai",
+  pageStructure: "pack_page_structure",
+  visualSystem: "pack_visual_system",
+  interactionSystem: "pack_interaction_system",
+  acceptanceCriteria: "pack_acceptance_criteria",
+  antiAILookChecklist: "pack_anti_ai_checklist",
 } as const;
 
 export function ExecutionPackSection({ pack, className }: ExecutionPackSectionProps) {
@@ -120,7 +120,7 @@ export function ExecutionPackSection({ pack, className }: ExecutionPackSectionPr
         <GlassCardHeader className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-[var(--color-accent-soft-violet)]" />
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            {t("pack_anti_ai")}
+            {t("pack_anti_ai_checklist")}
           </h3>
         </GlassCardHeader>
         <GlassCardContent>

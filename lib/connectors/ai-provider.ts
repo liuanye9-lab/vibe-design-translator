@@ -11,7 +11,13 @@ export interface AIProvider {
    * Generate design direction recommendations based on brief.
    * Returns a list of direction IDs with scores.
    */
-  generateDirections(brief: DesignBrief): Promise<Array<{ id: string; score: number }>>;
+  generateDirections(brief: DesignBrief): Promise<Array<{
+    id: string;
+    score: number;
+    reason?: string;
+    keySignals?: string[];
+    materialPatternIds?: string[];
+  }>>;
 
   /**
    * Generate full execution pack for a selected direction.

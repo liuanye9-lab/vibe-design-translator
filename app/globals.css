@@ -117,6 +117,93 @@ body {
 }
 
 /* ============================================================
+   Material Preview Motion
+   ============================================================ */
+
+.motion-preview[data-running="true"] .p-3 > div {
+  position: relative;
+  transform: translateZ(0);
+}
+
+.motion-preview[data-running="true"] .p-3 div[class*="rounded"] {
+  animation: materialFloat 4.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.motion-preview[data-running="true"] .p-3 div[class*="bg-gradient"] {
+  background-size: 180% 180%;
+  animation-name: materialFloat, materialGradientShift;
+  animation-duration: 4.8s, 6s;
+}
+
+.motion-preview[data-running="true"] .p-3 div:nth-child(2n) {
+  animation-delay: 0.18s;
+}
+
+.motion-preview[data-running="true"] .p-3 div:nth-child(3n) {
+  animation-delay: 0.34s;
+}
+
+.motion-preview[data-pattern-id="p3"][data-running="true"] .p-3 > div::before,
+.motion-preview[data-pattern-id="p6"][data-running="true"] .p-3 > div::before,
+.motion-preview[data-pattern-id="p10"][data-running="true"] .p-3 > div::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.24), transparent 80%);
+  transform: translateX(-55%);
+  animation: materialSweep 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.motion-preview[data-pattern-id="p9"][data-running="true"] .p-3 div[style*="height"] {
+  transform-origin: bottom;
+  animation: materialBar 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes materialFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -2px, 0) scale(1.015);
+  }
+}
+
+@keyframes materialGradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes materialSweep {
+  0%, 35% {
+    transform: translateX(-55%);
+  }
+  70%, 100% {
+    transform: translateX(55%);
+  }
+}
+
+@keyframes materialBar {
+  from {
+    transform: scaleY(0.75);
+  }
+  to {
+    transform: scaleY(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-preview[data-running="true"] .p-3 div,
+  .motion-preview[data-running="true"] .p-3 div::before {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
    Buttons
    ============================================================ */
 

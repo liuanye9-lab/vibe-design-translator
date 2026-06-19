@@ -38,6 +38,40 @@ function extractJSON<T>(content: string): T {
   return JSON.parse(raw) as T;
 }
 
+function extractJSONArray<T>(content: string): T[] {
+  const cleaned = content
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+  const start = cleaned.indexOf("[");
+  let raw = start >= 0 ? cleaned.slice(start) : cleaned;
+  const end = raw.lastIndexOf("]");
+  if (end >= 0) {
+    raw = raw.slice(0, end + 1);
+  } else if (raw.startsWith("[")) {
+    raw = `${raw}]`;
+  }
+
+  const parsed = JSON.parse(raw);
+  return Array.isArray(parsed) ? parsed as T[] : [parsed as T];
+}
+
+function extractLooseJSONArray<T>(content: string): T[] {
+  try {
+    return extractJSONArray<T>(content);
+  } catch {
+    const cleaned = content
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+    const objectMatches = cleaned.match(/\{[^{}]*\}/g);
+    if (!objectMatches?.length) {
+      throw new Error("No JSON objects found");
+    }
+    return objectMatches.map((item) => JSON.parse(item) as T);
+  }
+}
+
 export class AgnesProvider implements AIProvider, VisionProvider {
   constructor() {
     if (!AGNES_API_KEY) {
@@ -78,17 +112,37 @@ export class AgnesProvider implements AIProvider, VisionProvider {
 
   async generateDirections(
     brief: DesignBrief
-  ): Promise<Array<{ id: string; score: number }>> {
+  ): Promise<Array<{
+    id: string;
+    score: number;
+    reason?: string;
+    keySignals?: string[];
+    materialPatternIds?: string[];
+  }>> {
     const systemPrompt = `你是设计方向推荐引擎。
-根据用户的设计简报，从以下方向中推荐最合适的设计方向，并返回 JSON 数组。
+根据用户的设计简报，从以下方向中推荐最合适的前端设计方向。你必须像真实产品设计 agent 一样，结合产品类别、目标用户、业务目标、第一印象、受众和内容密度进行判断。
 
 可选方向：
 - calm-professional：企业、SaaS、金融、专业服务
 - soft-intelligent：AI、开发者工具、教育、效率工具
 - experimental-premium：创意机构、作品集、高端品牌、前沿产品
 
-只返回 JSON 数组，不要 markdown。格式：
-[{"id":"soft-intelligent","score":85}]`;
+可选素材模式 ID：
+- p1 有意留白
+- p2 非对称网格
+- p3 卡片堆叠
+- p4 双色层级
+- p5 色块章节
+- p6 柔和渐变蒙层
+- p7 字号对比
+- p8 混合字体系
+- p9 磁吸交互
+- p10 滚动揭示编排
+- p11 手势导航
+- p12 微反馈循环
+
+只返回 JSON 数组，不要 markdown。按推荐优先级排序，分数为 0-100：
+[{"id":"soft-intelligent","score":88,"reason":"一句具体推荐理由","keySignals":["信号1","信号2"],"materialPatternIds":["p1","p6","p12"]}]`;
 
     const userPrompt = `产品：${brief.productName}
 类别：${brief.productCategory}
@@ -96,7 +150,10 @@ export class AgnesProvider implements AIProvider, VisionProvider {
 页面目标：${brief.pageGoal}
 第一印象：${brief.firstImpression || "未指定"}
 业务优先级：${brief.businessPriority || "未指定"}
-受众：${brief.audience || "未指定"}`;
+受众：${brief.audience || "未指定"}
+视觉强度：${brief.visualIntensity}
+内容密度：${brief.contentDensity}
+希望避免：${brief.avoidedFeeling?.join("、") || "未指定"}`;
 
     const content = await this.chatCompletion(
       [
@@ -107,7 +164,13 @@ export class AgnesProvider implements AIProvider, VisionProvider {
     );
 
     try {
-      return extractJSON<Array<{ id: string; score: number }>>(content);
+      return extractLooseJSONArray<{
+        id: string;
+        score: number;
+        reason?: string;
+        keySignals?: string[];
+        materialPatternIds?: string[];
+      }>(content);
     } catch {
       console.error("Failed to parse Agnes directions response:", content);
       return [
@@ -137,7 +200,11 @@ export class AgnesProvider implements AIProvider, VisionProvider {
 - responsiveRules: string[]
 - prompts: object，包含 codex、claude-code、gemini、workbuddy 四个 key
 
-只返回 JSON，不要 markdown。`;
+要求：
+- 除 prompts 内面向具体工具的长提示词外，所有数组内容必须使用中文
+- 不要输出 i18n key、占位 key 或 pack_xxx 之类内部字段名作为正文
+- 页面结构里的模块名也用中文，例如“首屏区”“输入区”“预览区”，不要写 Hero Section / Input Zone
+- 只返回 JSON，不要 markdown。`;
 
     const userPrompt = `产品：${brief.productName}
 类别：${brief.productCategory}
