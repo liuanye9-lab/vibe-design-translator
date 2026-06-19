@@ -28,7 +28,45 @@ struct AgnesDirectionService {
     var apiKey: String
     var model: String
 
+    func testConnection() async throws -> String {
+        let request = try makeChatRequest(
+            messages: [
+                .init(role: "system", content: "你是 API 连通性测试助手。只返回一句中文短句。"),
+                .init(role: "user", content: "请回复：连接正常")
+            ],
+            temperature: 0,
+            maxTokens: 32
+        )
+
+        let data = try await send(request)
+        let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
+        guard let content = decoded.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines),
+              !content.isEmpty else {
+            throw AgnesDirectionError.emptyResponse
+        }
+        return content
+    }
+
     func recommendDirections(for brief: DesignBrief) async throws -> [DirectionRecommendation] {
+        let request = try makeChatRequest(
+            messages: [
+                .init(role: "system", content: systemPrompt),
+                .init(role: "user", content: userPrompt(for: brief))
+            ],
+            temperature: 0.25,
+            maxTokens: 3200
+        )
+
+        let data = try await send(request)
+        let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
+        guard let content = decoded.choices.first?.message.content, !content.isEmpty else {
+            throw AgnesDirectionError.emptyResponse
+        }
+
+        return try parseRecommendations(from: content)
+    }
+
+    private func makeChatRequest(messages: [ChatMessage], temperature: Double, maxTokens: Int) throws -> URLRequest {
         let key = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { throw AgnesDirectionError.missingAPIKey }
 
@@ -41,30 +79,25 @@ struct AgnesDirectionService {
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = 30
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONEncoder().encode(ChatRequest(
             model: model,
-            messages: [
-                .init(role: "system", content: systemPrompt),
-                .init(role: "user", content: userPrompt(for: brief))
-            ],
-            temperature: 0.25,
-            max_tokens: 3200
+            messages: messages,
+            temperature: temperature,
+            max_tokens: maxTokens
         ))
+        return request
+    }
 
+    private func send(_ request: URLRequest) async throws -> Data {
         let (data, response) = try await URLSession.shared.data(for: request)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
             let body = String(data: data, encoding: .utf8) ?? "Unknown error"
             throw AgnesDirectionError.requestFailed("Agnes API \(http.statusCode): \(body)")
         }
-
-        let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
-        guard let content = decoded.choices.first?.message.content, !content.isEmpty else {
-            throw AgnesDirectionError.emptyResponse
-        }
-
-        return try parseRecommendations(from: content)
+        return data
     }
 
     private var systemPrompt: String {

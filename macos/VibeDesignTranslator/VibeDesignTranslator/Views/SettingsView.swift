@@ -26,6 +26,19 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.borderedProminent)
 
+                Button {
+                    Task { await model.testAgnesConnection() }
+                } label: {
+                    if model.isTestingConnection {
+                        ProgressView()
+                            .scaleEffect(0.75)
+                    } else {
+                        Label("测试连接", systemImage: "network")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(model.isTestingConnection)
+
                 if let message = model.settingsMessage {
                     Text(message)
                         .font(.caption)

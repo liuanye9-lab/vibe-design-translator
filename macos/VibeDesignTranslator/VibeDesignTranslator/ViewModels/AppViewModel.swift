@@ -10,6 +10,7 @@ final class AppViewModel: ObservableObject {
     @Published var selectedDirectionID: DesignDirectionID = .softIntelligent
     @Published var selectedPatternIDs: [String] = ["p1", "p6", "p9", "p12"]
     @Published var isLoading = false
+    @Published var isTestingConnection = false
     @Published var statusMessage = "准备根据想法生成设计方向"
     @Published var lastProvider = "未连接"
     @Published var errorMessage: String?
@@ -110,6 +111,23 @@ final class AppViewModel: ObservableObject {
             ))
             settingsMessage = "设置已保存到本机，API Key 已进入 Keychain"
             errorMessage = nil
+        } catch {
+            settingsMessage = nil
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func testAgnesConnection() async {
+        isTestingConnection = true
+        settingsMessage = nil
+        errorMessage = nil
+        defer { isTestingConnection = false }
+
+        do {
+            let service = AgnesDirectionService(apiBase: apiBase, apiKey: apiKey, model: textModel)
+            let response = try await service.testConnection()
+            settingsMessage = "Agnes 连接正常：\(response)"
+            lastProvider = "Agnes · \(textModel)"
         } catch {
             settingsMessage = nil
             errorMessage = error.localizedDescription
