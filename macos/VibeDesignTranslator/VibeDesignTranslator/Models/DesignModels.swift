@@ -86,6 +86,53 @@ struct BlueprintSection: Identifiable, Codable, Equatable {
     let interaction: String
 }
 
+extension FrontendBlueprint {
+    func markdown(title: String) -> String {
+        var lines: [String] = [
+            "# \(title) 前端执行蓝图",
+            "",
+            "## 设计定位",
+            positioning,
+            "",
+            "## 布局策略",
+            layoutStrategy,
+            "",
+            "## 视觉系统",
+            visualSystem,
+            "",
+            "## 动效系统",
+            motionSystem,
+            "",
+            "## 组件系统",
+            componentSystem,
+            "",
+            "## 页面结构"
+        ]
+
+        if pageSections.isEmpty {
+            lines.append("- 未提供")
+        } else {
+            for section in pageSections {
+                lines.append("- \(section.name)：\(section.goal)")
+                lines.append("  - 布局：\(section.layout)")
+                lines.append("  - 交互：\(section.interaction)")
+            }
+        }
+
+        lines.append("")
+        lines.append("## 颜色 Token")
+        lines.append(contentsOf: colorTokens.map { "- \($0)" })
+        lines.append("")
+        lines.append("## 排版规则")
+        lines.append(contentsOf: typographyRules.map { "- \($0)" })
+        lines.append("")
+        lines.append("## 实现提示词")
+        lines.append(implementationPrompt)
+
+        return lines.joined(separator: "\n")
+    }
+}
+
 struct DesignPattern: Identifiable, Equatable {
     let id: String
     let name: String

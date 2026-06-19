@@ -1,5 +1,7 @@
+import AppKit
 import Combine
 import Foundation
+import UniformTypeIdentifiers
 
 @MainActor
 final class AppViewModel: ObservableObject {
@@ -45,6 +47,14 @@ final class AppViewModel: ObservableObject {
         recommendations.first { recommendation in
             recommendation.direction == selectedDirectionID
         }
+    }
+
+    var selectedBlueprint: FrontendBlueprint? {
+        selectedRecommendation?.blueprint
+    }
+
+    var selectedDirectionTitle: String {
+        selectedRecommendation?.direction?.title ?? selectedDirectionID.title
     }
 
     func recommendDirections() async {
@@ -118,6 +128,51 @@ final class AppViewModel: ObservableObject {
         SessionStore.clear()
     }
 
+    func copySelectedBlueprint() {
+        guard let markdown = selectedBlueprint?.markdown(title: selectedDirectionTitle) else {
+            statusMessage = "当前没有可复制的蓝图"
+            return
+        }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(markdown, forType: .string)
+        statusMessage = "已复制当前前端执行蓝图"
+    }
+
+    func copySelectedPrompt() {
+        guard let prompt = selectedBlueprint?.implementationPrompt else {
+            statusMessage = "当前没有可复制的实现提示词"
+            return
+        }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(prompt, forType: .string)
+        statusMessage = "已复制当前实现提示词"
+    }
+
+    func exportSelectedBlueprint() {
+        guard let blueprint = selectedBlueprint else {
+            statusMessage = "当前没有可导出的蓝图"
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.title = "导出前端执行蓝图"
+        panel.nameFieldStringValue = defaultExportFilename()
+        panel.canCreateDirectories = true
+        panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return
+        }
+
+        do {
+            try blueprint.markdown(title: selectedDirectionTitle).write(to: url, atomically: true, encoding: .utf8)
+            statusMessage = "已导出：\(url.lastPathComponent)"
+        } catch {
+            errorMessage = error.localizedDescription
+            statusMessage = "蓝图导出失败"
+        }
+    }
+
     private func saveSession() {
         SessionStore.save(AppSession(
             brief: brief,
@@ -127,6 +182,19 @@ final class AppViewModel: ObservableObject {
             statusMessage: statusMessage,
             lastProvider: lastProvider
         ))
+    }
+
+    private func defaultExportFilename() -> String {
+        let invalidCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:")
+        let filename = selectedDirectionTitle
+            .components(separatedBy: invalidCharacters)
+            .joined(separator: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if filename.isEmpty {
+            return "frontend-blueprint.md"
+        }
+        return "\(filename)-frontend-blueprint.md"
     }
 
     private func localFallbackRecommendations() -> [DirectionRecommendation] {

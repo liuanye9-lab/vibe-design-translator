@@ -13,6 +13,7 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 - Structured Agent output with direction score, judgment signals, material pattern IDs, page structure, visual system, motion system, component system, color tokens, typography rules, and an implementation prompt.
 - Native clipboard export for the selected execution blueprint and implementation prompt.
 - Native `.md` file export for the selected execution blueprint.
+- Native macOS Design menu for generating, copying, exporting, and clearing sessions with keyboard shortcuts.
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
 - Material category filter and Agent-linked pattern highlighting.
 - Persistent local settings: model configuration is stored in `UserDefaults`, and `AGNES_API_KEY` is stored in macOS Keychain.
