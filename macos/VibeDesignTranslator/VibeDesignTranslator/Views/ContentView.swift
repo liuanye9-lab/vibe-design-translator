@@ -286,6 +286,22 @@ struct RecommendationCard: View {
                     TagRow(items: materialNames)
                 }
             }
+
+            if !recommendation.evidenceItems.isEmpty {
+                InsightListBlock(title: "素材证据", systemImage: "square.stack.3d.up", items: recommendation.evidenceItems, accent: recommendation.direction?.accent ?? .blue)
+            }
+
+            if !recommendation.motionItems.isEmpty {
+                InsightListBlock(title: "动效方向", systemImage: "film.stack", items: recommendation.motionItems, accent: recommendation.direction?.accent ?? .blue)
+            }
+
+            if !recommendation.frontendItems.isEmpty {
+                InsightListBlock(title: "前端蓝图要点", systemImage: "curlybraces.square", items: recommendation.frontendItems, accent: recommendation.direction?.accent ?? .blue)
+            }
+
+            if !recommendation.questionItems.isEmpty {
+                InsightListBlock(title: "待确认问题", systemImage: "questionmark.bubble", items: recommendation.questionItems, accent: .orange)
+            }
         }
         .padding(18)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -293,6 +309,39 @@ struct RecommendationCard: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(isSelected ? (recommendation.direction?.accent ?? .blue) : Color.clear, lineWidth: 2)
         }
+    }
+}
+
+struct InsightListBlock: View {
+    let title: String
+    let systemImage: String
+    let items: [String]
+    let accent: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(title, systemImage: systemImage)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(accent)
+
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(items.prefix(5), id: \.self) { item in
+                    HStack(alignment: .top, spacing: 8) {
+                        Circle()
+                            .fill(accent.opacity(0.70))
+                            .frame(width: 5, height: 5)
+                            .padding(.top, 6)
+                        Text(item)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

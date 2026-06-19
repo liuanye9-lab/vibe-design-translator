@@ -113,7 +113,10 @@ struct AgnesDirectionService {
         输出必须精准、可落地，避免泛泛而谈。每个推荐都必须包含：
         - 为什么这个方向适合这个产品
         - 应该采用哪些素材库模式
+        - 每个素材模式为什么能支持这个方向
+        - 动图/动效/视频素材应该怎样用于页面体验
         - 前端页面应该如何组织结构、视觉、动效和组件
+        - 还有哪些产品问题需要继续确认
         - 可以直接交给前端或设计 Agent 继续生成页面的 implementationPrompt
 
         返回严格 JSON，不要 markdown。可以返回数组，也可以返回 {"recommendations": [...]}。
@@ -125,6 +128,10 @@ struct AgnesDirectionService {
           "confidence": "high",
           "keySignals": ["从用户 brief 提取的判断信号"],
           "materialPatternIds": ["p1","p6","p9"],
+          "materialEvidence": ["p10 的滚动揭示能把 Agent 推理过程变成可见节奏"],
+          "motionDirection": ["结果生成时使用 100ms 内的 loading 反馈和 600ms 成功确认"],
+          "frontendBlueprint": ["首屏左侧输入 brief，右侧显示方向、证据和蓝图摘要"],
+          "questionsToResolve": ["是否需要导入真实产品截图作为素材证据"],
           "blueprint": {
             "positioning": "一句话定义设计定位",
             "layoutStrategy": "页面整体布局策略",

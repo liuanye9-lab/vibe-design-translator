@@ -224,6 +224,25 @@ final class AppViewModel: ObservableObject {
                 confidence: "medium",
                 keySignals: [brief.productCategory, brief.firstImpression, brief.targetUsers],
                 materialPatternIds: ["p1", "p6", "p9", "p12"],
+                materialEvidence: [
+                    "p1 用留白把输入、推荐和蓝图分成清晰决策区，避免工具界面拥挤。",
+                    "p6 用低透明度渐变表达智能感，但不让背景抢走生成结果。",
+                    "p12 让生成、复制、导出都有明确状态反馈，符合真实 Agent 工具预期。"
+                ],
+                motionDirection: [
+                    "生成中 100ms 内进入 loading 状态，结果出现使用短促淡入。",
+                    "素材卡保留 SwiftUI 原生循环动效，用户可一键关闭。",
+                    "CTA 和复制动作只做轻微按压/确认，不使用夸张旋转或缩放。"
+                ],
+                frontendBlueprint: [
+                    "首屏保持左侧 Brief 输入、右侧 Agent 推荐和执行蓝图。",
+                    "推荐卡展示判断信号、素材证据、动效方向和实现提示词。",
+                    "素材库支持按分类与媒介筛选，并高亮当前推荐关联模式。"
+                ],
+                questionsToResolve: [
+                    "是否需要导入真实截图或录屏作为后续素材证据。",
+                    "是否需要把蓝图直接导出为 Codex 任务文件。"
+                ],
                 blueprint: .init(
                     positioning: "用柔和智能感降低 AI 产品的理解成本，同时保留专业可信的执行感",
                     layoutStrategy: "首屏聚焦一个明确结果承诺，下方用卡片堆叠展示工作流、案例和能力边界",
@@ -247,6 +266,21 @@ final class AppViewModel: ObservableObject {
                 confidence: "medium",
                 keySignals: [brief.businessPriority],
                 materialPatternIds: ["p1", "p4", "p7"],
+                materialEvidence: [
+                    "p1 和 p7 共同建立高可信的信息层级，适合需要专业判断的设计工具。",
+                    "p4 用双色层级承载密集数据与状态，不依赖花哨装饰。"
+                ],
+                motionDirection: [
+                    "仅在状态确认、卡片进入和按钮反馈上使用 150-280ms 的短动效。",
+                    "避免大面积漂移和强渐变，保持企业级冷静。"
+                ],
+                frontendBlueprint: [
+                    "采用窄内容宽度、强标题层级和证据卡片。",
+                    "把素材证据作为次级信息，不打断主转化路径。"
+                ],
+                questionsToResolve: [
+                    "是否优先面向企业团队而非独立开发者。"
+                ],
                 blueprint: .init(
                     positioning: "用稳定、清晰、低噪音的信息架构建立企业级信任",
                     layoutStrategy: "采用窄内容宽度、明确分区和强标题层级，让用户快速扫描价值与证据",

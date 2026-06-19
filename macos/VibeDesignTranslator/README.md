@@ -10,14 +10,14 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 - Default text model: `Agnes-2.0-Flash`.
 - Default image model setting: `Agnes-Image-2.0-Flash`.
 - Default video model setting: `Agnes-Video-V2.0`.
-- Structured Agent output with direction score, judgment signals, material pattern IDs, page structure, visual system, motion system, component system, color tokens, typography rules, and an implementation prompt.
+- Structured Agent output with direction score, judgment signals, material pattern IDs, material evidence, motion direction, frontend blueprint notes, unresolved product questions, page structure, visual system, component system, color tokens, typography rules, and an implementation prompt.
 - Native clipboard export for the selected execution blueprint and implementation prompt.
 - Native `.md` file export for the selected execution blueprint.
 - Native macOS Design menu for generating, copying, exporting, and clearing sessions with keyboard shortcuts.
 - Native macOS Settings scene for Agnes model and Keychain configuration.
 - Native Agnes connection test from Settings using the current API base, key, and text model.
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
-- Material category filter and Agent-linked pattern highlighting.
+- Material source, media type, motion spec, frontend notes, category filter, media filter, and Agent-linked pattern highlighting.
 - Persistent local settings: model configuration is stored in `UserDefaults`, and `AGNES_API_KEY` is stored in macOS Keychain.
 - Session restore: the last brief, recommendations, selected direction, and highlighted material patterns are stored locally.
 - Local fallback blueprints when the API key is missing or the provider returns an invalid response.

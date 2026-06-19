@@ -4,6 +4,7 @@ struct MaterialsLibraryView: View {
     @EnvironmentObject private var model: AppViewModel
     @State private var animate = true
     @State private var selectedCategory = "全部"
+    @State private var selectedMediaKind: MaterialMediaKind = .all
 
     private let categories = ["全部", "布局", "色彩", "排版", "交互"]
 
@@ -12,11 +13,21 @@ struct MaterialsLibraryView: View {
     ]
 
     private var filteredPatterns: [DesignPattern] {
+        let categoryFiltered: [DesignPattern]
         if selectedCategory == "全部" {
-            return designPatterns
+            categoryFiltered = designPatterns
+        } else {
+            categoryFiltered = designPatterns.filter { pattern in
+                pattern.category == selectedCategory
+            }
         }
-        return designPatterns.filter { pattern in
-            pattern.category == selectedCategory
+
+        if selectedMediaKind == .all {
+            return categoryFiltered
+        }
+
+        return categoryFiltered.filter { pattern in
+            materialAsset(for: pattern.id)?.mediaKind == selectedMediaKind
         }
     }
 
@@ -41,6 +52,14 @@ struct MaterialsLibraryView: View {
                         Toggle("动效", isOn: $animate)
                             .toggleStyle(.switch)
                             .frame(width: 92)
+
+                        Picker("媒介", selection: $selectedMediaKind) {
+                            ForEach(MaterialMediaKind.allCases) { mediaKind in
+                                Text(mediaKind.rawValue).tag(mediaKind)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 160)
                     }
                 }
 
@@ -60,6 +79,10 @@ struct MaterialPatternCard: View {
     let animate: Bool
     let highlighted: Bool
 
+    private var material: MaterialAsset? {
+        materialAsset(for: pattern.id)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -74,11 +97,48 @@ struct MaterialPatternCard: View {
                     .background(Color.primary.opacity(0.06), in: Capsule())
             }
 
+            if let material {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(material.title)
+                                .font(.callout.weight(.semibold))
+                            Text("\(material.source) · \(material.sourceSignal)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Text(material.mediaKind.rawValue)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.blue)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.10), in: Capsule())
+                    }
+
+                    Text(material.motionSpec)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(10)
+                .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+
             MotionPreview(patternID: pattern.id, animate: animate)
                 .frame(height: 130)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
             TagRow(items: pattern.suitableFor)
+
+            if let material {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("前端注记")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    TagRow(items: material.frontendNotes)
+                }
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(pattern.traits, id: \.self) { trait in
