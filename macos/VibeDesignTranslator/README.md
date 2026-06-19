@@ -1,0 +1,46 @@
+# Vibe Design Translator for macOS
+
+Native SwiftUI app for turning a product idea into front-end design direction recommendations and a reusable motion material library.
+
+## What is included
+
+- Native SwiftUI sidebar app, no WebView shell.
+- Direction Agent that calls `https://apihub.agnes-ai.com/v1/chat/completions`.
+- Default text model: `Agnes-2.0-Flash`.
+- Animated SwiftUI material library for layout, color, typography, and interaction patterns.
+- Local fallback recommendations when the API key is missing or the provider returns an invalid response.
+
+## Run
+
+Open `VibeDesignTranslator.xcodeproj` in Xcode and run the `VibeDesignTranslator` scheme.
+
+You can also run from this directory:
+
+```bash
+./script/build_and_run.sh
+```
+
+Useful flags:
+
+```bash
+./script/build_and_run.sh --verify
+./script/build_and_run.sh --logs
+./script/build_and_run.sh --debug
+```
+
+## Agnes API Key
+
+The repository does not store API keys.
+
+Provide the key in either place:
+
+- App Settings screen: paste `AGNES_API_KEY`.
+- Xcode Scheme environment variable: `AGNES_API_KEY`.
+
+## Local verification note
+
+This project requires full Xcode for `xcodebuild`. If `xcode-select -p` points to `/Library/Developer/CommandLineTools`, switch to Xcode:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
