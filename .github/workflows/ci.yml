@@ -55,3 +55,28 @@ jobs:
             -derivedDataPath dist/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Inspect app bundle
+        working-directory: macos/VibeDesignTranslator
+        run: |
+          APP="dist/DerivedData/Build/Products/Debug/VibeDesignTranslator.app"
+          test -d "$APP"
+          test -x "$APP/Contents/MacOS/VibeDesignTranslator"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Contents/Info.plist"
+          /usr/bin/file "$APP/Contents/MacOS/VibeDesignTranslator"
+
+      - name: Package app artifact
+        working-directory: macos/VibeDesignTranslator
+        run: |
+          mkdir -p dist/artifacts
+          ditto -c -k --keepParent \
+            dist/DerivedData/Build/Products/Debug/VibeDesignTranslator.app \
+            dist/artifacts/VibeDesignTranslator-Debug.app.zip
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeDesignTranslator-Debug
+          path: macos/VibeDesignTranslator/dist/artifacts/VibeDesignTranslator-Debug.app.zip
+          if-no-files-found: error
