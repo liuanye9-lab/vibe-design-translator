@@ -47,6 +47,12 @@ Useful flags:
 ./script/build_and_run.sh --debug
 ```
 
+Run project-level static verification:
+
+```bash
+./script/verify_project.sh
+```
+
 ## Agnes API Key
 
 The repository does not store API keys.
