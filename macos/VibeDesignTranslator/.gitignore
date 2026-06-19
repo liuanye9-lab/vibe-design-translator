@@ -1,0 +1,18 @@
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+
+# Local build output
+dist/
+DerivedData/
+build/
+*.app
+*.dSYM
+
+# Swift Package Manager, if this project later adds Package.swift
+.build/
+Package.resolved
+
+# macOS metadata
+.DS_Store
