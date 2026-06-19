@@ -32,3 +32,26 @@ jobs:
 
       - name: Verify
         run: npm run verify
+
+  macos-app:
+    name: Build native macOS app
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify macOS project structure
+        working-directory: macos/VibeDesignTranslator
+        run: ./script/verify_project.sh
+
+      - name: Build VibeDesignTranslator
+        working-directory: macos/VibeDesignTranslator
+        run: |
+          xcodebuild \
+            -project VibeDesignTranslator.xcodeproj \
+            -scheme VibeDesignTranslator \
+            -configuration Debug \
+            -derivedDataPath dist/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
