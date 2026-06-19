@@ -2,6 +2,7 @@ import Foundation
 
 enum AgnesDirectionError: LocalizedError {
     case missingAPIKey
+    case invalidAPIBase
     case emptyResponse
     case invalidResponse
     case requestFailed(String)
@@ -9,13 +10,15 @@ enum AgnesDirectionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            "请先在设置里填写 Agnes API Key，或通过环境变量 AGNES_API_KEY 提供"
+            return "请先在设置里填写 Agnes API Key，或通过环境变量 AGNES_API_KEY 提供"
+        case .invalidAPIBase:
+            return "Agnes API Base 不是有效 URL"
         case .emptyResponse:
-            "模型没有返回内容"
+            return "模型没有返回内容"
         case .invalidResponse:
-            "模型返回格式无法解析"
+            return "模型返回格式无法解析"
         case .requestFailed(let message):
-            message
+            return message
         }
     }
 }
@@ -29,7 +32,13 @@ struct AgnesDirectionService {
         let key = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { throw AgnesDirectionError.missingAPIKey }
 
-        let url = URL(string: apiBase.trimmingCharacters(in: .whitespacesAndNewlines) + "/chat/completions")!
+        let cleanBase = apiBase
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let url = URL(string: cleanBase + "/chat/completions") else {
+            throw AgnesDirectionError.invalidAPIBase
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -41,7 +50,7 @@ struct AgnesDirectionService {
                 .init(role: "user", content: userPrompt(for: brief))
             ],
             temperature: 0.25,
-            max_tokens: 1800
+            max_tokens: 3200
         ))
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -60,7 +69,7 @@ struct AgnesDirectionService {
 
     private var systemPrompt: String {
         """
-        你是资深前端设计方向 Agent。根据用户想法，推荐最适合的前端设计方向。
+        你是资深前端设计方向 Agent，不是聊天助手。你的任务是把模糊产品想法转成可执行的前端设计方向。
         只允许从三个方向中选择：
         - calm-professional
         - soft-intelligent
@@ -68,8 +77,35 @@ struct AgnesDirectionService {
 
         可引用素材模式：p1 有意留白, p2 非对称网格, p3 卡片堆叠, p4 双色层级, p5 色块章节, p6 柔和渐变蒙层, p7 字号对比, p8 混合字体系, p9 磁吸交互, p10 滚动揭示编排, p11 手势导航, p12 微反馈循环
 
-        返回严格 JSON 数组，不要 markdown：
-        [{"directionId":"soft-intelligent","score":92,"reason":"具体理由","confidence":"high","keySignals":["信号"],"materialPatternIds":["p1","p6"]}]
+        输出必须精准、可落地，避免泛泛而谈。每个推荐都必须包含：
+        - 为什么这个方向适合这个产品
+        - 应该采用哪些素材库模式
+        - 前端页面应该如何组织结构、视觉、动效和组件
+        - 可以直接交给前端或设计 Agent 继续生成页面的 implementationPrompt
+
+        返回严格 JSON，不要 markdown。可以返回数组，也可以返回 {"recommendations": [...]}。
+        Schema:
+        [{
+          "directionId": "soft-intelligent",
+          "score": 92,
+          "reason": "具体理由",
+          "confidence": "high",
+          "keySignals": ["从用户 brief 提取的判断信号"],
+          "materialPatternIds": ["p1","p6","p9"],
+          "blueprint": {
+            "positioning": "一句话定义设计定位",
+            "layoutStrategy": "页面整体布局策略",
+            "visualSystem": "色彩、材质、层级和图像策略",
+            "motionSystem": "动效节奏、触发方式和克制边界",
+            "componentSystem": "需要的核心组件和状态",
+            "pageSections": [
+              {"name":"Hero","goal":"这一屏解决什么问题","layout":"布局描述","interaction":"交互或动效"}
+            ],
+            "colorTokens": ["#0F172A 主文字", "#3B82F6 主行动"],
+            "typographyRules": ["Hero 40-56px 半粗", "正文 16-18px"],
+            "implementationPrompt": "给前端生成器的中文实现提示词"
+          }
+        }]
         """
     }
 
@@ -93,22 +129,49 @@ struct AgnesDirectionService {
             .replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if let data = extractJSONArrayString(from: cleaned).data(using: .utf8),
+        if let data = extractJSONPayloadString(from: cleaned).data(using: .utf8),
            let parsed = try? JSONDecoder().decode([DirectionRecommendation].self, from: data) {
             return parsed
+        }
+
+        if let data = extractJSONPayloadString(from: cleaned).data(using: .utf8),
+           let payload = try? JSONDecoder().decode(DirectionRecommendationPayload.self, from: data) {
+            return payload.recommendations
         }
 
         throw AgnesDirectionError.invalidResponse
     }
 
-    private func extractJSONArrayString(from text: String) -> String {
-        guard let start = text.firstIndex(of: "[") else { return text }
+    private func extractJSONPayloadString(from text: String) -> String {
+        let arrayStart = text.firstIndex(of: "[")
+        let objectStart = text.firstIndex(of: "{")
+
+        guard let start = earliestIndex(arrayStart, objectStart) else { return text }
         let sliced = String(text[start...])
-        if let end = sliced.lastIndex(of: "]") {
+        let closingCharacter: Character = sliced.first == "{" ? "}" : "]"
+
+        if let end = sliced.lastIndex(of: closingCharacter) {
             return String(sliced[...end])
         }
-        return sliced + "]"
+        return sliced + String(closingCharacter)
     }
+
+    private func earliestIndex(_ lhs: String.Index?, _ rhs: String.Index?) -> String.Index? {
+        switch (lhs, rhs) {
+        case (.some(let left), .some(let right)):
+            return left < right ? left : right
+        case (.some(let left), .none):
+            return left
+        case (.none, .some(let right)):
+            return right
+        case (.none, .none):
+            return nil
+        }
+    }
+}
+
+private struct DirectionRecommendationPayload: Decodable {
+    let recommendations: [DirectionRecommendation]
 }
 
 private struct ChatRequest: Encodable {

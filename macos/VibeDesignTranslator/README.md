@@ -1,14 +1,26 @@
 # Vibe Design Translator for macOS
 
-Native SwiftUI app for turning a product idea into front-end design direction recommendations and a reusable motion material library.
+Native SwiftUI app for turning a product idea into precise front-end design direction recommendations, execution blueprints, and a reusable motion material library.
 
 ## What is included
 
 - Native SwiftUI sidebar app, no WebView shell.
 - Direction Agent that calls `https://apihub.agnes-ai.com/v1/chat/completions`.
 - Default text model: `Agnes-2.0-Flash`.
+- Default image model setting: `Agnes-Image-2.0-Flash`.
+- Default video model setting: `Agnes-Video-V2.0`.
+- Structured Agent output with direction score, judgment signals, material pattern IDs, page structure, visual system, motion system, component system, color tokens, typography rules, and an implementation prompt.
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
-- Local fallback recommendations when the API key is missing or the provider returns an invalid response.
+- Material category filter and Agent-linked pattern highlighting.
+- Local fallback blueprints when the API key is missing or the provider returns an invalid response.
+
+## Agent response contract
+
+The Agnes response is parsed as strict JSON. Each recommendation can include:
+
+- `directionId`: one of `calm-professional`, `soft-intelligent`, `experimental-premium`.
+- `materialPatternIds`: references into the native material library.
+- `blueprint`: a front-end execution plan with page sections, visual strategy, motion strategy, components, tokens, and a Chinese implementation prompt.
 
 ## Run
 

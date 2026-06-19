@@ -80,7 +80,7 @@ struct BriefComposerView: View {
             VStack(alignment: .leading, spacing: 22) {
                 HeaderBlock(
                     title: "把想法转成前端设计方向",
-                    subtitle: "输入产品想法后，原生 Mac App 会调用 Agnes 生成方向推荐、理由、信号和可用素材模式"
+                    subtitle: "输入产品想法后，原生 Mac App 会调用 Agnes 生成方向推荐、判断信号、素材模式和前端执行蓝图"
                 )
 
                 HStack(alignment: .top, spacing: 18) {
@@ -90,6 +90,7 @@ struct BriefComposerView: View {
                     VStack(spacing: 18) {
                         AgentStatusCard()
                         DirectionRecommendationsView()
+                        SelectedBlueprintView()
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -142,7 +143,7 @@ struct BriefFormCard: View {
                     } else {
                         Image(systemName: "wand.and.stars")
                     }
-                    Text(model.isLoading ? "分析中..." : "调用 Agnes 推荐方向")
+                    Text(model.isLoading ? "分析中..." : "生成设计蓝图")
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -256,6 +257,15 @@ struct RecommendationCard: View {
                 TagRow(items: recommendation.keySignals)
             }
 
+            if let blueprint = recommendation.blueprint {
+                Text(blueprint.positioning)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+
             let materialNames = designPatterns.names(for: recommendation.materialPatternIds)
             if !materialNames.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
@@ -271,6 +281,150 @@ struct RecommendationCard: View {
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(isSelected ? (recommendation.direction?.accent ?? .blue) : Color.clear, lineWidth: 2)
+        }
+    }
+}
+
+struct SelectedBlueprintView: View {
+    @EnvironmentObject private var model: AppViewModel
+
+    var body: some View {
+        if let recommendation = model.selectedRecommendation, let blueprint = recommendation.blueprint {
+            BlueprintPlanView(
+                title: recommendation.direction?.title ?? recommendation.directionId,
+                accent: recommendation.direction?.accent ?? .blue,
+                blueprint: blueprint
+            )
+        }
+    }
+}
+
+struct BlueprintPlanView: View {
+    let title: String
+    let accent: Color
+    let blueprint: FrontendBlueprint
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Label("前端执行蓝图", systemImage: "rectangle.3.group")
+                    .font(.headline)
+                Spacer()
+                Text(title)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(accent.opacity(0.10), in: Capsule())
+            }
+
+            BlueprintTextBlock(title: "设计定位", text: blueprint.positioning)
+            BlueprintTextBlock(title: "布局策略", text: blueprint.layoutStrategy)
+
+            HStack(alignment: .top, spacing: 12) {
+                BlueprintTextBlock(title: "视觉系统", text: blueprint.visualSystem)
+                BlueprintTextBlock(title: "动效系统", text: blueprint.motionSystem)
+                BlueprintTextBlock(title: "组件系统", text: blueprint.componentSystem)
+            }
+
+            if !blueprint.pageSections.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("页面结构")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    ForEach(blueprint.pageSections) { section in
+                        BlueprintSectionRow(section: section)
+                    }
+                }
+            }
+
+            if !blueprint.colorTokens.isEmpty {
+                BlueprintTokenGroup(title: "颜色 Token", items: blueprint.colorTokens)
+            }
+
+            if !blueprint.typographyRules.isEmpty {
+                BlueprintTokenGroup(title: "排版规则", items: blueprint.typographyRules)
+            }
+
+            BlueprintPromptBlock(prompt: blueprint.implementationPrompt)
+        }
+        .padding(18)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+}
+
+struct BlueprintTextBlock: View {
+    let title: String
+    let text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .padding(12)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+struct BlueprintSectionRow: View {
+    let section: BlueprintSection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(section.name)
+                .font(.callout.weight(.semibold))
+            Text(section.goal)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            HStack(alignment: .top, spacing: 10) {
+                Label(section.layout, systemImage: "rectangle.split.2x1")
+                Label(section.interaction, systemImage: "sparkles")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+struct BlueprintTokenGroup: View {
+    let title: String
+    let items: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            TagRow(items: items)
+        }
+    }
+}
+
+struct BlueprintPromptBlock: View {
+    let prompt: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("实现提示词")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(prompt)
+                .font(.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 }

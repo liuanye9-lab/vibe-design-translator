@@ -59,10 +59,31 @@ struct DirectionRecommendation: Identifiable, Codable, Equatable {
     let confidence: String
     let keySignals: [String]
     let materialPatternIds: [String]
+    let blueprint: FrontendBlueprint?
 
     var direction: DesignDirectionID? {
         DesignDirectionID(rawValue: directionId)
     }
+}
+
+struct FrontendBlueprint: Codable, Equatable {
+    let positioning: String
+    let layoutStrategy: String
+    let visualSystem: String
+    let motionSystem: String
+    let componentSystem: String
+    let pageSections: [BlueprintSection]
+    let colorTokens: [String]
+    let typographyRules: [String]
+    let implementationPrompt: String
+}
+
+struct BlueprintSection: Identifiable, Codable, Equatable {
+    var id: String { name }
+    let name: String
+    let goal: String
+    let layout: String
+    let interaction: String
 }
 
 struct DesignPattern: Identifiable, Equatable {
