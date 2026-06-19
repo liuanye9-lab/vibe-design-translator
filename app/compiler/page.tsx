@@ -14,21 +14,22 @@ import { PromptOutput } from "@/components/product/prompt-output";
 import { useDesignStore } from "@/store/use-design-store";
 import { generateExecutionPack } from "@/lib/prompt-templates";
 import { getDirectionById } from "@/lib/design-directions";
+import { localizeDirection } from "@/lib/design-direction-i18n";
 import { DesignExecutionPack } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/use-i18n";
 
 export default function CompilerPage() {
   const router = useRouter();
   const { brief, selectedDirectionId, selectedTool, setSelectedTool, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pack, setPack] = useState<DesignExecutionPack | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Hydrate store from localStorage on mount
   useEffect(() => {
-    if (!isHydrated) {
-      hydrateFromStorage();
-    }
-  }, [isHydrated, hydrateFromStorage]);
+    hydrateFromStorage();
+    setIsLoaded(true);
+  }, [hydrateFromStorage]);
 
   // Generate pack when data is available
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function CompilerPage() {
   }, [isHydrated, brief, selectedDirectionId]);
 
   // If no pack data, show message
-  if (!isHydrated || !pack) {
+  if (!isLoaded || !isHydrated || !pack) {
     return (
       <AppShell showBackButton backHref="/">
         <PageWrapper>
@@ -65,6 +66,7 @@ export default function CompilerPage() {
   }
 
   const direction = getDirectionById(selectedDirectionId!)!;
+  const displayDirection = localizeDirection(direction, locale);
 
   const handleCopied = () => {
     addHistory({ type: "prompt_copied", data: { tool: selectedTool } });
@@ -79,7 +81,7 @@ export default function CompilerPage() {
               {t("compiler_step_label")}
             </SectionLabel>
 
-            <SectionHeading subtitle={t("compiler_subtitle").replace("{product}", brief?.productName ?? "").replace("{direction}", direction.name)}>
+            <SectionHeading subtitle={t("compiler_subtitle").replace("{product}", brief?.productName ?? "").replace("{direction}", displayDirection.name)}>
               {t("compiler_title")}
             </SectionHeading>
           </div>
@@ -89,7 +91,7 @@ export default function CompilerPage() {
             <p className="text-sm text-[var(--color-text-secondary)]">
               <span className="font-medium text-[var(--color-text-primary)]">{brief?.productName}</span>
               {" — "}
-              <span className="text-[var(--color-accent-ios-blue)]">{direction.name}</span>
+              <span className="text-[var(--color-accent-ios-blue)]">{displayDirection.name}</span>
               {" "}{t("pack_direction_suffix")}
             </p>
           </div>

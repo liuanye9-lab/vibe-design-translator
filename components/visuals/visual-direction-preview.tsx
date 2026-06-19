@@ -58,7 +58,7 @@ export function VisualDirectionPreview({
     ? directionId === "calm-professional"
       ? "稳定、可信、权威。适合企业软件、金融服务、B2B SaaS。"
       : directionId === "soft-intelligent"
-      ? "平易近人 yet 前沿。适合 AI/ML 产品、开发者工具。"
+      ? "平易近人且前沿。适合 AI/ML 产品、开发者工具。"
       : "大胆、创新、高端。适合创意机构、时尚品牌。"
     : directionId === "calm-professional"
     ? "Stable, trustworthy, and authoritative. Ideal for enterprise software."

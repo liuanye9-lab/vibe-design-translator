@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout";
 import { PageContainer } from "@/components/layout";
 import { PageWrapper } from "@/components/layout";
@@ -17,12 +17,13 @@ import { useI18n } from "@/lib/i18n/use-i18n";
 import { useDesignStore } from "@/store/use-design-store";
 import { TOOL_LABELS } from "@/lib/constants";
 import { getDirectionById } from "@/lib/design-directions";
+import { localizeDirection } from "@/lib/design-direction-i18n";
 import { ToolType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Trash2, Download, AlertTriangle } from "lucide-react";
 
 export default function SettingsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const {
     brief,
     selectedDirectionId,
@@ -33,15 +34,16 @@ export default function SettingsPage() {
     isHydrated,
     hydrateFromStorage,
   } = useDesignStore();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Hydrate store from localStorage on mount
   useEffect(() => {
-    if (!isHydrated) {
-      hydrateFromStorage();
-    }
-  }, [isHydrated, hydrateFromStorage]);
+    hydrateFromStorage();
+    setIsLoaded(true);
+  }, [hydrateFromStorage]);
 
   const direction = selectedDirectionId ? getDirectionById(selectedDirectionId) : null;
+  const displayDirection = direction ? localizeDirection(direction, locale) : null;
 
   const handleClearAllData = () => {
     if (confirm(t("settings_confirm_clear"))) {
@@ -98,7 +100,11 @@ export default function SettingsPage() {
                     <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       {t("settings_brief_label")}
                     </span>
-                    {brief ? (
+                    {!isLoaded || !isHydrated ? (
+                      <p className="text-sm text-[var(--color-text-secondary)] mt-2">
+                        {t("common_loading")}
+                      </p>
+                    ) : brief ? (
                       <div className="mt-2 p-3 rounded-xl bg-[var(--color-surface)]">
                         <p className="font-medium text-[var(--color-text-primary)]">
                           {brief.productName}
@@ -119,10 +125,14 @@ export default function SettingsPage() {
                     <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                       {t("settings_direction_label")}
                     </span>
-                    {direction ? (
+                    {!isLoaded || !isHydrated ? (
+                      <p className="text-sm text-[var(--color-text-secondary)] mt-2">
+                        {t("common_loading")}
+                      </p>
+                    ) : displayDirection ? (
                       <div className="mt-2 p-3 rounded-xl bg-[var(--color-surface)]">
                         <p className="font-medium text-[var(--color-text-primary)]">
-                          {direction.name}
+                          {displayDirection.name}
                         </p>
                       </div>
                     ) : (

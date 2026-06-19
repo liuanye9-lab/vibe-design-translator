@@ -9,6 +9,7 @@ import { DesignDirection } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Check, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
+import { getDirectionPreviewTitle } from "@/lib/design-direction-i18n";
 import { VisualDirectionPreview } from "@/components/visuals/visual-direction-preview";
 
 interface DirectionCardProps {
@@ -24,7 +25,7 @@ export function DirectionCard({
   onSelect,
   className,
 }: DirectionCardProps) {
-  const { t, tVar } = useI18n();
+  const { t, tVar, locale } = useI18n();
   return (
     <GlassCard
       variant="interactive"
@@ -61,7 +62,8 @@ export function DirectionCard({
       <div className="mb-6">
         <VisualDirectionPreview
           directionId={direction.id}
-          title="视觉预览"
+          locale={locale}
+          title={getDirectionPreviewTitle(locale)}
           className="border border-[var(--color-border)]"
         />
       </div>

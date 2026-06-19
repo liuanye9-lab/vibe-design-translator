@@ -48,9 +48,9 @@ export function generateId(): string {
 /**
  * Format ISO date to readable string
  */
-export function formatDate(isoString: string): string {
+export function formatDate(isoString: string, locale: "zh" | "en" = "en"): string {
   const date = new Date(isoString);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale === "zh" ? "zh-CN" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -62,7 +62,7 @@ export function formatDate(isoString: string): string {
 /**
  * Get relative time string (e.g., "2 hours ago")
  */
-export function getRelativeTime(isoString: string): string {
+export function getRelativeTime(isoString: string, locale: "zh" | "en" = "en"): string {
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -70,11 +70,19 @@ export function getRelativeTime(isoString: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
+  if (locale === "zh") {
+    if (diffMins < 1) return "刚刚";
+    if (diffMins < 60) return `${diffMins} 分钟前`;
+    if (diffHours < 24) return `${diffHours} 小时前`;
+    if (diffDays < 7) return `${diffDays} 天前`;
+    return formatDate(isoString, locale);
+  }
+
   if (diffMins < 1) return "just now";
   if (diffMins < 60) return `${diffMins} min ago`;
   if (diffHours < 24) return `${diffHours} hr ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  return formatDate(isoString);
+  return formatDate(isoString, locale);
 }
 
 // ============================================================

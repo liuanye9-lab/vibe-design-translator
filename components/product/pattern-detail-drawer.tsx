@@ -12,6 +12,11 @@ import { LiquidButton } from "@/components/ui/liquid-button";
 import { cn } from "@/lib/utils";
 import { X, Lightbulb, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import {
+  getPatternCategoryLabel,
+  getPatternLabels,
+} from "@/lib/design-pattern-i18n";
 
 interface PatternDetailDrawerProps {
   pattern: DesignPattern | null;
@@ -24,6 +29,8 @@ export function PatternDetailDrawer({
   isOpen,
   onClose,
 }: PatternDetailDrawerProps) {
+  const { locale } = useI18n();
+  const labels = getPatternLabels(locale);
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -68,7 +75,7 @@ export function PatternDetailDrawer({
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <span className="text-sm font-medium px-3 py-1 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-secondary)]">
-                  {pattern.category}
+                  {getPatternCategoryLabel(pattern.category, locale)}
                 </span>
                 <button
                   onClick={onClose}
@@ -86,7 +93,7 @@ export function PatternDetailDrawer({
               {/* Suitable for */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                  Suitable for
+                  {labels.suitableFor}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {pattern.suitableFor.map((item) => (
@@ -103,7 +110,7 @@ export function PatternDetailDrawer({
               {/* Visual Traits */}
               <GlassCard className="p-6 mb-6">
                 <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                  Visual Traits
+                  {labels.visualTraits}
                 </h3>
                 <ul className="space-y-2">
                   {pattern.visualTraits.map((trait, index) => (
@@ -120,7 +127,7 @@ export function PatternDetailDrawer({
               {/* Layout Advice */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                  Layout Advice
+                  {labels.layoutAdvice}
                 </h3>
                 <ul className="space-y-2">
                   {pattern.layoutAdvice.map((advice, index) => (
@@ -137,7 +144,7 @@ export function PatternDetailDrawer({
               {/* Interaction Advice */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                  Interaction Advice
+                  {labels.interactionAdvice}
                 </h3>
                 <ul className="space-y-2">
                   {pattern.interactionAdvice.map((advice, index) => (
@@ -155,9 +162,9 @@ export function PatternDetailDrawer({
               <GlassCard className="p-6 mb-6 bg-[var(--color-surface)]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">
-                    Prompt Fragment
+                    {labels.promptFragment}
                   </h3>
-                  <CopyButton value={pattern.promptFragment} label="Copy" />
+                  <CopyButton value={pattern.promptFragment} label={labels.copy} />
                 </div>
                 <p className="text-[var(--color-text-primary)] text-sm leading-relaxed">
                   {pattern.promptFragment}
@@ -167,7 +174,7 @@ export function PatternDetailDrawer({
               {/* What to Avoid */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">
-                  What to Avoid
+                  {labels.avoid}
                 </h3>
                 <ul className="space-y-2">
                   {pattern.avoid.map((item, index) => (

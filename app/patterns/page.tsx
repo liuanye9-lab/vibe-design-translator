@@ -13,34 +13,44 @@ import { PatternCard } from "@/components/product/pattern-card";
 import { PatternDetailDrawer } from "@/components/product/pattern-detail-drawer";
 import { GlassCard } from "@/components/ui/glass-card";
 import { TagGroup, TagPill } from "@/components/ui/tag-pill";
-import { DESIGN_PATTERNS, PATTERN_CATEGORIES, PatternCategory, searchPatterns } from "@/lib/design-patterns";
+import { DESIGN_PATTERNS, PATTERN_CATEGORIES, PatternCategory } from "@/lib/design-patterns";
+import {
+  getPatternCategoryLabel,
+  localizePatterns,
+} from "@/lib/design-pattern-i18n";
 import { DesignPattern } from "@/lib/types";
 import { useI18n } from "@/lib/i18n/use-i18n";
 import { Search, AlertTriangle } from "lucide-react";
 
 export default function PatternsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState<PatternCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPattern, setSelectedPattern] = useState<DesignPattern | null>(null);
 
   const filteredPatterns = useMemo(() => {
-    let patterns = DESIGN_PATTERNS;
+    let patterns = localizePatterns(DESIGN_PATTERNS, locale);
 
-    // Filter by category
     if (selectedCategory !== "All") {
       patterns = patterns.filter((p) => p.category === selectedCategory);
     }
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      patterns = searchPatterns(searchQuery).filter(
-        (p) => selectedCategory === "All" || p.category === selectedCategory
-      );
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      patterns = patterns.filter((pattern) => {
+        const searchable = [
+          pattern.name,
+          getPatternCategoryLabel(pattern.category, locale),
+          ...pattern.suitableFor,
+          ...pattern.visualTraits,
+        ].join(" ").toLowerCase();
+
+        return searchable.includes(query);
+      });
     }
 
     return patterns;
-  }, [selectedCategory, searchQuery]);
+  }, [locale, selectedCategory, searchQuery]);
 
   return (
     <AppShell showNav={true}>
@@ -78,7 +88,7 @@ export default function PatternsPage() {
                   active={selectedCategory === category}
                   onClick={() => setSelectedCategory(category)}
                 >
-                  {category}
+                  {getPatternCategoryLabel(category, locale)}
                 </TagPill>
               ))}
             </TagGroup>

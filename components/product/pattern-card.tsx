@@ -10,6 +10,11 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { cn } from "@/lib/utils";
 import { Lightbulb, Layout, Palette, Type, MousePointer } from "lucide-react";
 import { DesignPatternPreview } from "@/components/visuals/design-pattern-preview";
+import { useI18n } from "@/lib/i18n/use-i18n";
+import {
+  getPatternCategoryLabel,
+  getPatternLabels,
+} from "@/lib/design-pattern-i18n";
 
 interface PatternCardProps {
   pattern: DesignPattern;
@@ -32,6 +37,8 @@ const categoryColors = {
 };
 
 export function PatternCard({ pattern, onSelect, className }: PatternCardProps) {
+  const { locale } = useI18n();
+  const labels = getPatternLabels(locale);
   const Icon = categoryIcons[pattern.category as keyof typeof categoryIcons] || Lightbulb;
   const colorClass = categoryColors[pattern.category as keyof typeof categoryColors] || "from-gray-500 to-gray-600";
 
@@ -47,7 +54,7 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
           <Icon className="w-5 h-5 text-white" />
         </div>
         <span className="text-xs font-medium px-2 py-1 rounded-lg bg-[var(--color-surface)] text-[var(--color-text-secondary)]">
-          {pattern.category}
+          {getPatternCategoryLabel(pattern.category, locale)}
         </span>
       </div>
 
@@ -58,7 +65,9 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
 
       {/* Suitable for */}
       <div className="mb-4">
-        <p className="text-xs text-[var(--color-text-secondary)] mb-2">Best for</p>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-2">
+          {labels.bestFor}
+        </p>
         <div className="flex flex-wrap gap-1">
           {pattern.suitableFor.slice(0, 2).map((item) => (
             <span
@@ -73,7 +82,9 @@ export function PatternCard({ pattern, onSelect, className }: PatternCardProps) 
 
       {/* Visual traits preview */}
       <div className="space-y-2 mb-4">
-        <p className="text-xs text-[var(--color-text-secondary)]">Visual traits</p>
+        <p className="text-xs text-[var(--color-text-secondary)]">
+          {labels.visualTraits}
+        </p>
         <div className="space-y-1">
           {pattern.visualTraits.slice(0, 2).map((trait, index) => (
             <div key={index} className="flex items-start gap-2">

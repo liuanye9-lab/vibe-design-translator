@@ -14,6 +14,7 @@ import { DirectionCard } from "@/components/product/direction-card";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { useDesignStore } from "@/store/use-design-store";
 import { DESIGN_DIRECTIONS, getDirectionById } from "@/lib/design-directions";
+import { localizeDirection, localizeDirections } from "@/lib/design-direction-i18n";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/use-i18n";
@@ -21,14 +22,13 @@ import { useI18n } from "@/lib/i18n/use-i18n";
 export default function DirectionsPage() {
   const router = useRouter();
   const { brief, selectedDirectionId, setSelectedDirection, addHistory, isHydrated, hydrateFromStorage } = useDesignStore();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [isLoaded, setIsLoaded] = useState(false);
+  const directions = localizeDirections(DESIGN_DIRECTIONS, locale);
   useEffect(() => {
-    if (!isHydrated) {
-      hydrateFromStorage();
-    }
+    hydrateFromStorage();
     setIsLoaded(true);
-  }, [isHydrated, hydrateFromStorage]);
+  }, [hydrateFromStorage]);
 
   // If no brief, redirect to brief page
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function DirectionsPage() {
     }
   }, [isHydrated, isLoaded, brief, router]);
 
-  if (!isHydrated || !brief) {
+  if (!isLoaded || !isHydrated || !brief) {
     return (
       <AppShell showBackButton backHref="/brief">
         <PageWrapper>
@@ -59,7 +59,8 @@ export default function DirectionsPage() {
     if (selectedDirectionId) {
       const direction = getDirectionById(selectedDirectionId);
       if (direction) {
-        addHistory({ type: "direction_selected", data: { directionId: selectedDirectionId, directionName: direction.name } });
+        const displayDirection = localizeDirection(direction, locale);
+        addHistory({ type: "direction_selected", data: { directionId: selectedDirectionId, directionName: displayDirection.name } });
       }
       router.push("/pack");
     }
@@ -98,7 +99,7 @@ export default function DirectionsPage() {
 
           {/* Direction cards */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {DESIGN_DIRECTIONS.map((direction) => (
+            {directions.map((direction) => (
               <DirectionCard
                 key={direction.id}
                 direction={direction}
