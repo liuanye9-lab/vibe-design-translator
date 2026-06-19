@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var model: AppViewModel
@@ -305,6 +306,7 @@ struct BlueprintPlanView: View {
     let accent: Color
     let blueprint: FrontendBlueprint
     @State private var copied = false
+    @State private var exportMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -318,12 +320,24 @@ struct BlueprintPlanView: View {
                     Label(copied ? "已复制" : "复制蓝图", systemImage: copied ? "checkmark" : "doc.on.doc")
                 }
                 .buttonStyle(.bordered)
+                Button {
+                    exportMarkdown()
+                } label: {
+                    Label("导出 .md", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
                 Text(title)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(accent)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(accent.opacity(0.10), in: Capsule())
+            }
+
+            if let exportMessage = exportMessage {
+                Text(exportMessage)
+                    .font(.caption)
+                    .foregroundStyle(exportMessage.hasPrefix("导出失败") ? .orange : .green)
             }
 
             BlueprintTextBlock(title: "设计定位", text: blueprint.positioning)
@@ -365,6 +379,38 @@ struct BlueprintPlanView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(blueprint.markdown(title: title), forType: .string)
         copied = true
+    }
+
+    private func exportMarkdown() {
+        let panel = NSSavePanel()
+        panel.title = "导出前端执行蓝图"
+        panel.nameFieldStringValue = defaultExportFilename()
+        panel.canCreateDirectories = true
+        panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return
+        }
+
+        do {
+            try blueprint.markdown(title: title).write(to: url, atomically: true, encoding: .utf8)
+            exportMessage = "已导出：\(url.lastPathComponent)"
+        } catch {
+            exportMessage = "导出失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func defaultExportFilename() -> String {
+        let invalidCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:")
+        let filename = title
+            .components(separatedBy: invalidCharacters)
+            .joined(separator: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if filename.isEmpty {
+            return "frontend-blueprint.md"
+        }
+        return "\(filename)-frontend-blueprint.md"
     }
 }
 
