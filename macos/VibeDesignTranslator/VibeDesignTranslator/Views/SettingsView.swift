@@ -7,7 +7,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 22) {
             HeaderBlock(
                 title: "模型设置",
-                subtitle: "API Key 只保存在本机运行态，当前仓库不会提交任何密钥"
+                subtitle: "模型配置保存在本机，API Key 使用 macOS Keychain，当前仓库不会提交任何密钥"
             )
 
             VStack(alignment: .leading, spacing: 14) {
@@ -18,7 +18,21 @@ struct SettingsView: View {
                 TextField("Image Model", text: $model.imageModel)
                 TextField("Video Model", text: $model.videoModel)
                 SecureField("AGNES_API_KEY", text: $model.apiKey)
-                Text("也可以在 Xcode Scheme 环境变量里设置 AGNES_API_KEY")
+
+                Button {
+                    model.saveSettings()
+                } label: {
+                    Label("保存设置", systemImage: "checkmark.circle")
+                }
+                .buttonStyle(.borderedProminent)
+
+                if let message = model.settingsMessage {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
+
+                Text("也可以在 Xcode Scheme 环境变量里设置 AGNES_API_KEY；环境变量会优先于 Keychain")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

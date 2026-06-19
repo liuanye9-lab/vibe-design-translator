@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -10,12 +11,22 @@ final class AppViewModel: ObservableObject {
     @Published var statusMessage = "准备根据想法生成设计方向"
     @Published var lastProvider = "未连接"
     @Published var errorMessage: String?
+    @Published var settingsMessage: String?
 
-    @Published var apiBase = "https://apihub.agnes-ai.com/v1"
-    @Published var textModel = "Agnes-2.0-Flash"
-    @Published var imageModel = "Agnes-Image-2.0-Flash"
-    @Published var videoModel = "Agnes-Video-V2.0"
-    @Published var apiKey = ProcessInfo.processInfo.environment["AGNES_API_KEY"] ?? ""
+    @Published var apiBase: String
+    @Published var textModel: String
+    @Published var imageModel: String
+    @Published var videoModel: String
+    @Published var apiKey: String
+
+    init() {
+        let settings = SettingsStore.load()
+        apiBase = settings.apiBase
+        textModel = settings.textModel
+        imageModel = settings.imageModel
+        videoModel = settings.videoModel
+        apiKey = settings.apiKey
+    }
 
     var selectedDirection: DesignDirectionID {
         selectedDirectionID
@@ -58,6 +69,23 @@ final class AppViewModel: ObservableObject {
         if let direction = recommendation.direction {
             selectedDirectionID = direction
             selectedPatternIDs = recommendation.materialPatternIds
+        }
+    }
+
+    func saveSettings() {
+        do {
+            try SettingsStore.save(AppSettings(
+                apiBase: apiBase,
+                textModel: textModel,
+                imageModel: imageModel,
+                videoModel: videoModel,
+                apiKey: apiKey
+            ))
+            settingsMessage = "设置已保存到本机，API Key 已进入 Keychain"
+            errorMessage = nil
+        } catch {
+            settingsMessage = nil
+            errorMessage = error.localizedDescription
         }
     }
 

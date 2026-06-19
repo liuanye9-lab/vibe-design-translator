@@ -12,6 +12,7 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 - Structured Agent output with direction score, judgment signals, material pattern IDs, page structure, visual system, motion system, component system, color tokens, typography rules, and an implementation prompt.
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
 - Material category filter and Agent-linked pattern highlighting.
+- Persistent local settings: model configuration is stored in `UserDefaults`, and `AGNES_API_KEY` is stored in macOS Keychain.
 - Local fallback blueprints when the API key is missing or the provider returns an invalid response.
 
 ## Agent response contract
@@ -46,8 +47,8 @@ The repository does not store API keys.
 
 Provide the key in either place:
 
-- App Settings screen: paste `AGNES_API_KEY`.
-- Xcode Scheme environment variable: `AGNES_API_KEY`.
+- App Settings screen: paste `AGNES_API_KEY` and click Save Settings. The key is stored in macOS Keychain.
+- Xcode Scheme environment variable: `AGNES_API_KEY`. This takes precedence over the Keychain value.
 
 ## Local verification note
 
