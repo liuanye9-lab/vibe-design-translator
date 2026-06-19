@@ -15,6 +15,7 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
 - Material category filter and Agent-linked pattern highlighting.
 - Persistent local settings: model configuration is stored in `UserDefaults`, and `AGNES_API_KEY` is stored in macOS Keychain.
+- Session restore: the last brief, recommendations, selected direction, and highlighted material patterns are stored locally.
 - Local fallback blueprints when the API key is missing or the provider returns an invalid response.
 
 ## Agent response contract

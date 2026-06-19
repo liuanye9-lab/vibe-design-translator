@@ -168,6 +168,15 @@ struct AgentStatusCard: View {
                 Label("智能方向 Agent", systemImage: "sparkle.magnifyingglass")
                     .font(.headline)
                 Spacer()
+                if !model.recommendations.isEmpty {
+                    Button {
+                        model.clearSession()
+                    } label: {
+                        Label("清除历史", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
                 Text(model.lastProvider)
                     .font(.caption)
                     .foregroundStyle(.secondary)

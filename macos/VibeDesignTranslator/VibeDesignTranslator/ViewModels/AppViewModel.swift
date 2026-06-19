@@ -26,6 +26,15 @@ final class AppViewModel: ObservableObject {
         imageModel = settings.imageModel
         videoModel = settings.videoModel
         apiKey = settings.apiKey
+
+        if let session = SessionStore.load() {
+            brief = session.brief
+            recommendations = session.recommendations
+            selectedDirectionID = session.selectedDirectionID
+            selectedPatternIDs = session.selectedPatternIDs
+            statusMessage = session.statusMessage
+            lastProvider = session.lastProvider
+        }
     }
 
     var selectedDirection: DesignDirectionID {
@@ -53,15 +62,22 @@ final class AppViewModel: ObservableObject {
                 selectedPatternIDs = top.materialPatternIds
                 statusMessage = "Agnes 已推荐 \(direction.title)，置信度 \(top.score)/100"
                 lastProvider = "Agnes · \(textModel)"
+                saveSession()
             } else {
                 statusMessage = "Agnes 返回了结果，但没有可用方向"
                 lastProvider = "Agnes · 格式异常"
+                saveSession()
             }
         } catch {
             errorMessage = error.localizedDescription
             lastProvider = "本地预览"
             statusMessage = "未调用真实模型，当前显示本地预览"
             recommendations = localFallbackRecommendations()
+            if let top = recommendations.first, let direction = top.direction {
+                selectedDirectionID = direction
+                selectedPatternIDs = top.materialPatternIds
+            }
+            saveSession()
         }
     }
 
@@ -69,6 +85,7 @@ final class AppViewModel: ObservableObject {
         if let direction = recommendation.direction {
             selectedDirectionID = direction
             selectedPatternIDs = recommendation.materialPatternIds
+            saveSession()
         }
     }
 
@@ -87,6 +104,29 @@ final class AppViewModel: ObservableObject {
             settingsMessage = nil
             errorMessage = error.localizedDescription
         }
+    }
+
+    func clearSession() {
+        brief = DesignBrief()
+        recommendations = []
+        selectedDirectionID = .softIntelligent
+        selectedPatternIDs = ["p1", "p6", "p9", "p12"]
+        statusMessage = "准备根据想法生成设计方向"
+        lastProvider = "未连接"
+        errorMessage = nil
+        settingsMessage = nil
+        SessionStore.clear()
+    }
+
+    private func saveSession() {
+        SessionStore.save(AppSession(
+            brief: brief,
+            recommendations: recommendations,
+            selectedDirectionID: selectedDirectionID,
+            selectedPatternIDs: selectedPatternIDs,
+            statusMessage: statusMessage,
+            lastProvider: lastProvider
+        ))
     }
 
     private func localFallbackRecommendations() -> [DirectionRecommendation] {
