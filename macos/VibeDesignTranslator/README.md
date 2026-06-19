@@ -5,6 +5,7 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 ## What is included
 
 - Native SwiftUI sidebar app, no WebView shell.
+- Native macOS app icon asset set.
 - Direction Agent that calls `https://apihub.agnes-ai.com/v1/chat/completions`.
 - Default text model: `Agnes-2.0-Flash`.
 - Default image model setting: `Agnes-Image-2.0-Flash`.
