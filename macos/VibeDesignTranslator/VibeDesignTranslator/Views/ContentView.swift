@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
@@ -303,6 +304,7 @@ struct BlueprintPlanView: View {
     let title: String
     let accent: Color
     let blueprint: FrontendBlueprint
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -310,6 +312,12 @@ struct BlueprintPlanView: View {
                 Label("前端执行蓝图", systemImage: "rectangle.3.group")
                     .font(.headline)
                 Spacer()
+                Button {
+                    copyMarkdown()
+                } label: {
+                    Label(copied ? "已复制" : "复制蓝图", systemImage: copied ? "checkmark" : "doc.on.doc")
+                }
+                .buttonStyle(.bordered)
                 Text(title)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(accent)
@@ -351,6 +359,12 @@ struct BlueprintPlanView: View {
         }
         .padding(18)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private func copyMarkdown() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(blueprint.markdown(title: title), forType: .string)
+        copied = true
     }
 }
 
@@ -412,12 +426,25 @@ struct BlueprintTokenGroup: View {
 
 struct BlueprintPromptBlock: View {
     let prompt: String
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("实现提示词")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            HStack {
+                Text("实现提示词")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(prompt, forType: .string)
+                    copied = true
+                } label: {
+                    Label(copied ? "已复制" : "复制提示词", systemImage: copied ? "checkmark" : "doc.on.doc")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
             Text(prompt)
                 .font(.system(.caption, design: .monospaced))
                 .textSelection(.enabled)
@@ -426,6 +453,53 @@ struct BlueprintPromptBlock: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+    }
+}
+
+extension FrontendBlueprint {
+    func markdown(title: String) -> String {
+        var lines: [String] = [
+            "# \(title) 前端执行蓝图",
+            "",
+            "## 设计定位",
+            positioning,
+            "",
+            "## 布局策略",
+            layoutStrategy,
+            "",
+            "## 视觉系统",
+            visualSystem,
+            "",
+            "## 动效系统",
+            motionSystem,
+            "",
+            "## 组件系统",
+            componentSystem,
+            "",
+            "## 页面结构"
+        ]
+
+        if pageSections.isEmpty {
+            lines.append("- 未提供")
+        } else {
+            for section in pageSections {
+                lines.append("- \(section.name)：\(section.goal)")
+                lines.append("  - 布局：\(section.layout)")
+                lines.append("  - 交互：\(section.interaction)")
+            }
+        }
+
+        lines.append("")
+        lines.append("## 颜色 Token")
+        lines.append(contentsOf: colorTokens.map { "- \($0)" })
+        lines.append("")
+        lines.append("## 排版规则")
+        lines.append(contentsOf: typographyRules.map { "- \($0)" })
+        lines.append("")
+        lines.append("## 实现提示词")
+        lines.append(implementationPrompt)
+
+        return lines.joined(separator: "\n")
     }
 }
 
