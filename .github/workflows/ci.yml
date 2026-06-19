@@ -66,6 +66,22 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :CFBundleDisplayName" "$APP/Contents/Info.plist"
           /usr/bin/file "$APP/Contents/MacOS/VibeDesignTranslator"
 
+      - name: Launch app smoke test
+        working-directory: macos/VibeDesignTranslator
+        run: |
+          APP="dist/DerivedData/Build/Products/Debug/VibeDesignTranslator.app"
+          pkill -x VibeDesignTranslator || true
+          open -n "$APP"
+          for attempt in 1 2 3 4 5; do
+            if pgrep -x VibeDesignTranslator >/dev/null; then
+              pkill -x VibeDesignTranslator || true
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "VibeDesignTranslator did not start" >&2
+          exit 1
+
       - name: Package app artifact
         working-directory: macos/VibeDesignTranslator
         run: |
