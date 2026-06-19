@@ -14,6 +14,7 @@ import { PatternDetailDrawer } from "@/components/product/pattern-detail-drawer"
 import { GlassCard } from "@/components/ui/glass-card";
 import { TagGroup, TagPill } from "@/components/ui/tag-pill";
 import { DESIGN_PATTERNS, PATTERN_CATEGORIES, PatternCategory } from "@/lib/design-patterns";
+import { MATERIAL_ASSETS, MATERIAL_SOURCES } from "@/lib/material-library";
 import {
   getPatternCategoryLabel,
   localizePatterns,
@@ -25,6 +26,8 @@ import { AlertTriangle, Pause, Play, Search } from "lucide-react";
 export default function PatternsPage() {
   const { t, locale } = useI18n();
   const [selectedCategory, setSelectedCategory] = useState<PatternCategory>("All");
+  const [selectedSourceId, setSelectedSourceId] = useState<string>("All");
+  const [selectedMediaKind, setSelectedMediaKind] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPattern, setSelectedPattern] = useState<DesignPattern | null>(null);
   const [animatedPreview, setAnimatedPreview] = useState(true);
@@ -36,14 +39,37 @@ export default function PatternsPage() {
       patterns = patterns.filter((p) => p.category === selectedCategory);
     }
 
+    if (selectedSourceId !== "All") {
+      const patternIds = new Set(
+        MATERIAL_ASSETS
+          .filter((asset) => asset.sourceId === selectedSourceId)
+          .map((asset) => asset.patternId)
+      );
+      patterns = patterns.filter((pattern) => patternIds.has(pattern.id));
+    }
+
+    if (selectedMediaKind !== "All") {
+      const patternIds = new Set(
+        MATERIAL_ASSETS
+          .filter((asset) => asset.mediaKind === selectedMediaKind)
+          .map((asset) => asset.patternId)
+      );
+      patterns = patterns.filter((pattern) => patternIds.has(pattern.id));
+    }
+
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       patterns = patterns.filter((pattern) => {
+        const material = MATERIAL_ASSETS.find((asset) => asset.patternId === pattern.id);
         const searchable = [
           pattern.name,
           getPatternCategoryLabel(pattern.category, locale),
           ...pattern.suitableFor,
           ...pattern.visualTraits,
+          material?.title,
+          material?.motionSpec,
+          ...(material?.tags || []),
+          ...(material?.designSignals || []),
         ].join(" ").toLowerCase();
 
         return searchable.includes(query);
@@ -51,7 +77,16 @@ export default function PatternsPage() {
     }
 
     return patterns;
-  }, [locale, selectedCategory, searchQuery]);
+  }, [locale, searchQuery, selectedCategory, selectedMediaKind, selectedSourceId]);
+
+  const mediaFilters = [
+    { id: "All", label: locale === "zh" ? "全部媒介" : "All media" },
+    { id: "css-motion", label: locale === "zh" ? "CSS 动效" : "CSS motion" },
+    { id: "animated-gif", label: locale === "zh" ? "动图思路" : "GIF ideas" },
+    { id: "video", label: locale === "zh" ? "视频/录屏" : "Video" },
+    { id: "static-image", label: locale === "zh" ? "静态图片" : "Static" },
+    { id: "reference-link", label: locale === "zh" ? "参考链接" : "Link" },
+  ];
 
   return (
     <AppShell showNav={true}>
@@ -109,6 +144,48 @@ export default function PatternsPage() {
                 </TagPill>
               ))}
             </TagGroup>
+
+            <div className="space-y-3 rounded-2xl border border-[var(--color-border)] bg-white/55 p-4">
+              <div>
+                <p className="mb-2 text-xs font-medium text-[var(--color-text-secondary)]">
+                  {locale === "zh" ? "按素材来源筛选" : "Filter by source"}
+                </p>
+                <TagGroup>
+                  <TagPill
+                    active={selectedSourceId === "All"}
+                    onClick={() => setSelectedSourceId("All")}
+                  >
+                    {locale === "zh" ? "全部来源" : "All sources"}
+                  </TagPill>
+                  {MATERIAL_SOURCES.map((source) => (
+                    <TagPill
+                      key={source.id}
+                      active={selectedSourceId === source.id}
+                      onClick={() => setSelectedSourceId(source.id)}
+                    >
+                      {source.name}
+                    </TagPill>
+                  ))}
+                </TagGroup>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-medium text-[var(--color-text-secondary)]">
+                  {locale === "zh" ? "按素材媒介筛选" : "Filter by media"}
+                </p>
+                <TagGroup>
+                  {mediaFilters.map((filter) => (
+                    <TagPill
+                      key={filter.id}
+                      active={selectedMediaKind === filter.id}
+                      onClick={() => setSelectedMediaKind(filter.id)}
+                    >
+                      {filter.label}
+                    </TagPill>
+                  ))}
+                </TagGroup>
+              </div>
+            </div>
           </div>
 
           {/* Patterns grid */}

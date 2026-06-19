@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { DesignDirection } from "@/lib/types";
 import type { DirectionRecommendation } from "@/lib/types";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Check, Sparkles, WandSparkles } from "lucide-react";
+import { Check, Clapperboard, Layers3, Sparkles, WandSparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
 import { getDirectionPreviewTitle } from "@/lib/design-direction-i18n";
 import { getPatternDisplayNameById } from "@/lib/design-pattern-i18n";
@@ -96,6 +96,23 @@ export function DirectionCard({
               ))}
             </div>
           )}
+          {recommendation.keySignals && recommendation.keySignals.length > 0 && (
+            <div className="mt-3">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
+                {locale === "zh" ? "判断信号" : "Signals"}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {recommendation.keySignals.slice(0, 4).map((signal) => (
+                  <span
+                    key={signal}
+                    className="rounded-md bg-[var(--color-accent-ios-blue)]/8 px-1.5 py-0.5 text-[10px] text-[var(--color-text-secondary)]"
+                  >
+                    {signal}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -157,6 +174,60 @@ export function DirectionCard({
           {tVar("direction_card_psych", { effect: direction.psychologicalEffect })}
         </span>
       </div>
+
+      {recommendation && (
+        <div className="mt-4 space-y-3 border-t border-[var(--color-border)] pt-4">
+          {recommendation.materialEvidence && recommendation.materialEvidence.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-primary)]">
+                <Layers3 className="h-3.5 w-3.5 text-[var(--color-accent-ios-blue)]" />
+                {locale === "zh" ? "素材证据" : "Material evidence"}
+              </div>
+              <ul className="space-y-1.5">
+                {recommendation.materialEvidence.slice(0, 3).map((item) => (
+                  <li key={item} className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {recommendation.motionDirection && recommendation.motionDirection.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-primary)]">
+                <Clapperboard className="h-3.5 w-3.5 text-[var(--color-accent-ios-blue)]" />
+                {locale === "zh" ? "动效方向" : "Motion direction"}
+              </div>
+              <ul className="space-y-1.5">
+                {recommendation.motionDirection.slice(0, 2).map((item) => (
+                  <li key={item} className="text-xs leading-5 text-[var(--color-text-secondary)]">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {recommendation.frontendBlueprint && recommendation.frontendBlueprint.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold text-[var(--color-text-primary)]">
+                {locale === "zh" ? "前端蓝图" : "Frontend blueprint"}
+              </p>
+              <div className="grid gap-1.5">
+                {recommendation.frontendBlueprint.slice(0, 4).map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-lg border border-[var(--color-border)] bg-white/45 px-2 py-1.5 text-xs leading-5 text-[var(--color-text-secondary)]"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </GlassCard>
   );
 }

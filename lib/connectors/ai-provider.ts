@@ -6,18 +6,24 @@
 
 import type { DesignBrief, DesignExecutionPack } from "@/lib/types";
 
+export interface ProviderDirectionRecommendation {
+  id: string;
+  score: number;
+  reason?: string;
+  keySignals?: string[];
+  materialPatternIds?: string[];
+  materialEvidence?: string[];
+  motionDirection?: string[];
+  frontendBlueprint?: string[];
+  questionsToResolve?: string[];
+}
+
 export interface AIProvider {
   /**
    * Generate design direction recommendations based on brief.
    * Returns a list of direction IDs with scores.
    */
-  generateDirections(brief: DesignBrief): Promise<Array<{
-    id: string;
-    score: number;
-    reason?: string;
-    keySignals?: string[];
-    materialPatternIds?: string[];
-  }>>;
+  generateDirections(brief: DesignBrief): Promise<ProviderDirectionRecommendation[]>;
 
   /**
    * Generate full execution pack for a selected direction.

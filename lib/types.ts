@@ -90,6 +90,44 @@ export interface DesignPattern {
   legalNote: string;
 }
 
+export type MaterialSourceKind =
+  | "interaction-flow"
+  | "product-ui"
+  | "website-inspiration"
+  | "template"
+  | "color-system";
+
+export type MaterialMediaKind =
+  | "css-motion"
+  | "animated-gif"
+  | "video"
+  | "static-image"
+  | "reference-link";
+
+export interface MaterialSource {
+  id: string;
+  name: string;
+  href: string;
+  kind: MaterialSourceKind;
+  signal: string;
+  note: string;
+}
+
+export interface MaterialAsset {
+  id: string;
+  patternId: string;
+  title: string;
+  sourceId: string;
+  mediaKind: MaterialMediaKind;
+  motionSpec: string;
+  useWhen: string[];
+  avoidWhen: string[];
+  designSignals: string[];
+  frontendNotes: string[];
+  tags: string[];
+  directionFit: string[];
+}
+
 // ============================================================
 // Design Direction
 // ============================================================
@@ -121,6 +159,10 @@ export interface DirectionRecommendation {
   score?: number;
   keySignals?: string[];
   materialPatternIds?: string[];
+  materialEvidence?: string[];
+  motionDirection?: string[];
+  frontendBlueprint?: string[];
+  questionsToResolve?: string[];
 }
 
 export interface DirectionAgentResult {

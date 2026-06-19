@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Lightbulb, Layout, Palette, Type, MousePointer } from "lucide-react";
 import { DesignPatternPreview } from "@/components/visuals/design-pattern-preview";
 import { useI18n } from "@/lib/i18n/use-i18n";
+import { getMaterialAssetsByPatternIds, getMaterialSourceById } from "@/lib/material-library";
 import {
   getPatternCategoryLabel,
   getPatternLabels,
@@ -40,6 +41,8 @@ const categoryColors = {
 export function PatternCard({ pattern, animatedPreview = true, onSelect, className }: PatternCardProps) {
   const { locale } = useI18n();
   const labels = getPatternLabels(locale);
+  const material = getMaterialAssetsByPatternIds([pattern.id])[0];
+  const source = material ? getMaterialSourceById(material.sourceId) : undefined;
   const Icon = categoryIcons[pattern.category as keyof typeof categoryIcons] || Lightbulb;
   const colorClass = categoryColors[pattern.category as keyof typeof categoryColors] || "from-gray-500 to-gray-600";
 
@@ -80,6 +83,33 @@ export function PatternCard({ pattern, animatedPreview = true, onSelect, classNa
           ))}
         </div>
       </div>
+
+      {material && (
+        <div className="mb-4 rounded-xl border border-[var(--color-border)] bg-white/55 p-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-[var(--color-text-primary)]">
+              {material.title}
+            </p>
+            <span className="shrink-0 rounded-md bg-[var(--color-accent-ios-blue)]/10 px-1.5 py-0.5 text-[10px] text-[var(--color-accent-ios-blue)]">
+              {material.mediaKind === "animated-gif"
+                ? locale === "zh" ? "动图" : "GIF"
+                : material.mediaKind === "video"
+                ? locale === "zh" ? "视频" : "Video"
+                : material.mediaKind === "css-motion"
+                ? locale === "zh" ? "动效" : "Motion"
+                : locale === "zh" ? "素材" : "Asset"}
+            </span>
+          </div>
+          <p className="line-clamp-2 text-xs leading-5 text-[var(--color-text-secondary)]">
+            {material.motionSpec}
+          </p>
+          {source && (
+            <p className="mt-2 text-[10px] text-[var(--color-text-muted)]">
+              {locale === "zh" ? "参考信号" : "Signal"} · {source.name} / {source.signal}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Visual traits preview */}
       <div className="space-y-2 mb-4">

@@ -21,6 +21,7 @@ import { AgentRunPanel } from "@/components/agent";
 import { LiquidButton } from "@/components/ui/liquid-button";
 import { DesignBrief, ToolType } from "@/lib/types";
 import { runDesignTranslationWorkflow } from "@/lib/agent/orchestrator";
+import { MATERIAL_SOURCES } from "@/lib/material-library";
 import { useDesignStore } from "@/store/use-design-store";
 import { cn } from "@/lib/utils";
 import type { AgentRun } from "@/lib/agent/types";
@@ -95,45 +96,6 @@ const briefSteps: BriefStep[] = [
     eyebrow: "输出偏好",
     prompt: "最后说一下输出给哪个工具，以及视觉强度和内容密度的大概感觉",
     placeholder: "例如：给 Codex，用克制但不无聊的视觉，内容密度中等偏高",
-  },
-];
-
-const materialSources = [
-  {
-    name: "Pageflows",
-    href: "https://pageflows.com/",
-    signal: "流程拆解",
-    note: "按 onboarding、checkout、dashboard、UI elements 找真实交互路径",
-  },
-  {
-    name: "Mobbin",
-    href: "https://mobbin.com/discover/apps/ios/latest",
-    signal: "App 截图库",
-    note: "看最新 iOS 产品的导航、列表、详情页和移动端信息密度",
-  },
-  {
-    name: "v0 Templates",
-    href: "https://v0.app/templates",
-    signal: "可执行模板",
-    note: "把页面结构、组件组合和 prompt 产出对齐到工程可复用格式",
-  },
-  {
-    name: "Awwwards",
-    href: "https://www.awwwards.com/websites/portfolio/",
-    signal: "高审美作品",
-    note: "用来判断记忆点、版式节奏和 portfolio 级视觉完成度",
-  },
-  {
-    name: "Recent Design",
-    href: "https://godly.website/",
-    signal: "新鲜网页灵感",
-    note: "筛选更前沿的 landing、AI 工具、创意网站表达方式",
-  },
-  {
-    name: "Huemint",
-    href: "https://huemint.com/brand-intersection/",
-    signal: "品牌配色",
-    note: "用交叉配色思路生成主色、辅助色和背景色关系",
   },
 ];
 
@@ -510,7 +472,7 @@ export function BriefForm({ mode = "has-idea", useAgentMode = false }: BriefForm
           </div>
 
           <div className="space-y-3">
-            {materialSources.map((source) => (
+            {MATERIAL_SOURCES.map((source) => (
               <a
                 key={source.name}
                 href={source.href}

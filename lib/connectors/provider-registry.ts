@@ -15,8 +15,8 @@ import { agnesProvider } from "./agnes-provider";
 
 export function getDesignAIProvider(): AIProvider {
   // Read env at call time to avoid module-level evaluation issues
-  const provider = process.env.AI_PROVIDER || "mock";
-  const enableRealAI = process.env.ENABLE_REAL_AI === "true";
+  const provider = process.env.AI_PROVIDER || (process.env.AGNES_API_KEY ? "agnes" : "mock");
+  const enableRealAI = process.env.ENABLE_REAL_AI === "true" || Boolean(process.env.AGNES_API_KEY);
   
   if (!enableRealAI) {
     return mockProvider;
@@ -41,8 +41,8 @@ export function getDesignAIProvider(): AIProvider {
 
 export function getVisionDiagnosisProvider(): VisionProvider {
   // Read env at call time to avoid module-level evaluation issues
-  const provider = process.env.AI_PROVIDER || "mock";
-  const enableRealAI = process.env.ENABLE_REAL_AI === "true";
+  const provider = process.env.AI_PROVIDER || (process.env.AGNES_API_KEY ? "agnes" : "mock");
+  const enableRealAI = process.env.ENABLE_REAL_AI === "true" || Boolean(process.env.AGNES_API_KEY);
   const enableVisionDiagnosis = process.env.ENABLE_VISION_DIAGNOSIS === "true";
   
   if (!enableRealAI || !enableVisionDiagnosis) {

@@ -10,15 +10,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDesignAIProvider } from "@/lib/connectors/provider-registry";
 import { mockProvider } from "@/lib/connectors/mock-provider";
 import { DESIGN_DIRECTIONS } from "@/lib/design-directions";
+import { getMaterialAssetsByPatternIds } from "@/lib/material-library";
 import type { DesignBrief, DirectionAgentResult, DirectionRecommendation } from "@/lib/types";
-
-type ProviderDirection = {
-  id: string;
-  score: number;
-  reason?: string;
-  keySignals?: string[];
-  materialPatternIds?: string[];
-};
+import type { ProviderDirectionRecommendation } from "@/lib/connectors/ai-provider";
 
 interface ApiSuccess {
   success: true;
@@ -60,17 +54,36 @@ function defaultReason(directionId: string, brief: DesignBrief): string {
 
 function fallbackPatterns(directionId: string): string[] {
   if (directionId === "calm-professional") return ["p1", "p4", "p7", "p12"];
-  if (directionId === "experimental-premium") return ["p2", "p5", "p8", "p10"];
-  return ["p1", "p6", "p9", "p12"];
+  if (directionId === "experimental-premium") return ["p2", "p5", "p8", "p10", "p11"];
+  return ["p1", "p6", "p9", "p10", "p12"];
 }
 
-function normalizeRecommendations(items: ProviderDirection[], brief: DesignBrief): DirectionRecommendation[] {
+function fallbackMaterialEvidence(patternIds: string[]): string[] {
+  return getMaterialAssetsByPatternIds(patternIds)
+    .slice(0, 4)
+    .map((asset) => `${asset.title}：${asset.designSignals.slice(0, 2).join("、")}，${asset.motionSpec}`);
+}
+
+function fallbackMotionDirection(patternIds: string[]): string[] {
+  return getMaterialAssetsByPatternIds(patternIds)
+    .slice(0, 3)
+    .map((asset) => asset.motionSpec);
+}
+
+function fallbackFrontendBlueprint(patternIds: string[]): string[] {
+  return getMaterialAssetsByPatternIds(patternIds)
+    .flatMap((asset) => asset.frontendNotes.slice(0, 2))
+    .slice(0, 6);
+}
+
+function normalizeRecommendations(items: ProviderDirectionRecommendation[], brief: DesignBrief): DirectionRecommendation[] {
   const seen = new Set<string>();
   return items
     .filter((item) => validDirectionIds.has(item.id) && !seen.has(item.id))
     .map((item) => {
       seen.add(item.id);
       const score = normalizeScore(item.score);
+      const patternIds = item.materialPatternIds?.slice(0, 5) || fallbackPatterns(item.id);
       return {
         directionId: item.id,
         score,
@@ -81,7 +94,13 @@ function normalizeRecommendations(items: ProviderDirection[], brief: DesignBrief
           brief.businessPriority,
           brief.firstImpression,
         ].filter(Boolean) as string[],
-        materialPatternIds: item.materialPatternIds?.slice(0, 4) || fallbackPatterns(item.id),
+        materialPatternIds: patternIds,
+        materialEvidence: item.materialEvidence?.slice(0, 5) || fallbackMaterialEvidence(patternIds),
+        motionDirection: item.motionDirection?.slice(0, 4) || fallbackMotionDirection(patternIds),
+        frontendBlueprint: item.frontendBlueprint?.slice(0, 6) || fallbackFrontendBlueprint(patternIds),
+        questionsToResolve: item.questionsToResolve?.slice(0, 3) || [
+          "是否有真实产品截图、动图或交互录屏可以作为素材输入。",
+        ],
       };
     })
     .sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -112,12 +131,14 @@ export async function POST(request: NextRequest) {
     }
 
     const brief: DesignBrief = body.brief;
-    const configuredProvider = process.env.AI_PROVIDER || "mock";
-    const isRealAI = configuredProvider !== "mock" && process.env.ENABLE_REAL_AI === "true";
+    const configuredProvider = process.env.AI_PROVIDER || (process.env.AGNES_API_KEY ? "agnes" : "mock");
+    const isRealAI = configuredProvider !== "mock" && (
+      process.env.ENABLE_REAL_AI === "true" || Boolean(process.env.AGNES_API_KEY)
+    );
     const provider = getDesignAIProvider();
 
     let fallback = !isRealAI;
-    let rawRecommendations: ProviderDirection[];
+    let rawRecommendations: ProviderDirectionRecommendation[];
 
     try {
       rawRecommendations = await provider.generateDirections(brief);

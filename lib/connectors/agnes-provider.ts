@@ -6,7 +6,7 @@
 // Text model: agnes-2.0-flash
 // Vision model: agnes-image-2.0-flash
 
-import type { AIProvider } from "./ai-provider";
+import type { AIProvider, ProviderDirectionRecommendation } from "./ai-provider";
 import type { VisionProvider } from "./vision-provider";
 import type {
   DesignBrief,
@@ -14,6 +14,7 @@ import type {
   DiagnosisReport,
   ScreenshotAsset,
 } from "@/lib/types";
+import { buildMaterialContextForAgent } from "@/lib/material-library";
 
 type AgnesContent =
   | string
@@ -43,23 +44,115 @@ function extractJSONArray<T>(content: string): T[] {
     .replace(/```json/g, "")
     .replace(/```/g, "")
     .trim();
+
   const start = cleaned.indexOf("[");
-  let raw = start >= 0 ? cleaned.slice(start) : cleaned;
-  const end = raw.lastIndexOf("]");
-  if (end >= 0) {
-    raw = raw.slice(0, end + 1);
-  } else if (raw.startsWith("[")) {
-    raw = `${raw}]`;
+  if (start < 0) {
+    const parsed = JSON.parse(cleaned);
+    return Array.isArray(parsed) ? parsed as T[] : [parsed as T];
   }
 
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let end = -1;
+
+  for (let index = start; index < cleaned.length; index += 1) {
+    const char = cleaned[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "[") depth += 1;
+    if (char === "]") depth -= 1;
+
+    if (depth === 0) {
+      end = index;
+      break;
+    }
+  }
+
+  const raw = end >= 0 ? cleaned.slice(start, end + 1) : cleaned.slice(start);
   const parsed = JSON.parse(raw);
   return Array.isArray(parsed) ? parsed as T[] : [parsed as T];
+}
+
+function extractTopLevelObjects<T>(content: string): T[] {
+  const cleaned = content
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+  const arrayStart = cleaned.indexOf("[");
+  const start = arrayStart >= 0 ? arrayStart : 0;
+  const objects: string[] = [];
+  let objectStart = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < cleaned.length; index += 1) {
+    const char = cleaned[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "{") {
+      if (depth === 0) objectStart = index;
+      depth += 1;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0 && objectStart >= 0) {
+        objects.push(cleaned.slice(objectStart, index + 1));
+        objectStart = -1;
+      }
+    }
+  }
+
+  if (!objects.length) {
+    throw new Error("No top-level JSON objects found");
+  }
+
+  return objects.map((item) => JSON.parse(item) as T);
 }
 
 function extractLooseJSONArray<T>(content: string): T[] {
   try {
     return extractJSONArray<T>(content);
   } catch {
+    try {
+      return extractTopLevelObjects<T>(content);
+    } catch {
+      // Continue to the broadest fallback below.
+    }
     const cleaned = content
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -110,39 +203,32 @@ export class AgnesProvider implements AIProvider, VisionProvider {
     return data.choices?.[0]?.message?.content || "";
   }
 
-  async generateDirections(
-    brief: DesignBrief
-  ): Promise<Array<{
-    id: string;
-    score: number;
-    reason?: string;
-    keySignals?: string[];
-    materialPatternIds?: string[];
-  }>> {
+  async generateDirections(brief: DesignBrief): Promise<ProviderDirectionRecommendation[]> {
     const systemPrompt = `你是设计方向推荐引擎。
-根据用户的设计简报，从以下方向中推荐最合适的前端设计方向。你必须像真实产品设计 agent 一样，结合产品类别、目标用户、业务目标、第一印象、受众和内容密度进行判断。
+根据用户的设计简报，从以下方向中推荐最合适的前端设计方向。你必须像真实产品设计 agent 一样，结合产品类别、目标用户、业务目标、第一印象、受众、内容密度、素材证据和前端实现约束进行判断。
 
 可选方向：
 - calm-professional：企业、SaaS、金融、专业服务
 - soft-intelligent：AI、开发者工具、教育、效率工具
 - experimental-premium：创意机构、作品集、高端品牌、前沿产品
 
-可选素材模式 ID：
-- p1 有意留白
-- p2 非对称网格
-- p3 卡片堆叠
-- p4 双色层级
-- p5 色块章节
-- p6 柔和渐变蒙层
-- p7 字号对比
-- p8 混合字体系
-- p9 磁吸交互
-- p10 滚动揭示编排
-- p11 手势导航
-- p12 微反馈循环
+素材库证据：
+${buildMaterialContextForAgent()}
 
-只返回 JSON 数组，不要 markdown。按推荐优先级排序，分数为 0-100：
-[{"id":"soft-intelligent","score":88,"reason":"一句具体推荐理由","keySignals":["信号1","信号2"],"materialPatternIds":["p1","p6","p12"]}]`;
+只返回 JSON 数组，不要 markdown。按推荐优先级排序，分数为 0-100。
+每个推荐必须包含：
+- id: 三个方向之一
+- score
+- reason: 具体说明为什么适合这个 brief
+- keySignals: 3-5 个从 brief 中提取的判断信号
+- materialPatternIds: 3-5 个素材模式 ID
+- materialEvidence: 3-5 条素材证据，必须说明素材如何影响这个方向
+- motionDirection: 2-4 条动效/动图/视频使用建议
+- frontendBlueprint: 4-6 条可执行的前端结构建议
+- questionsToResolve: 1-3 个还需要确认的产品问题
+
+示例：
+[{"id":"soft-intelligent","score":88,"reason":"这个产品需要把 AI 能力讲得可信且易理解，柔和智能型能平衡技术感和亲近感。","keySignals":["目标用户是独立开发者","需要输出给 Codex 的执行包","要避免模板味"],"materialPatternIds":["p1","p6","p10","p12"],"materialEvidence":["p10 用滚动揭示建立生成流程的叙事节奏"],"motionDirection":["AI 生成过程使用异步反馈闭环，不用夸张炫光"],"frontendBlueprint":["首屏采用输入区和素材证据并列布局"],"questionsToResolve":["是否需要展示真实案例截图"]}]`;
 
     const userPrompt = `产品：${brief.productName}
 类别：${brief.productCategory}
@@ -164,19 +250,26 @@ export class AgnesProvider implements AIProvider, VisionProvider {
     );
 
     try {
-      return extractLooseJSONArray<{
-        id: string;
-        score: number;
-        reason?: string;
-        keySignals?: string[];
-        materialPatternIds?: string[];
-      }>(content);
-    } catch {
-      console.error("Failed to parse Agnes directions response:", content);
+      return extractLooseJSONArray<ProviderDirectionRecommendation>(content);
+    } catch (error) {
+      console.error(
+        "Failed to parse Agnes directions response:",
+        error instanceof Error ? error.message : error
+      );
       return [
-        { id: "soft-intelligent", score: 75 },
-        { id: "calm-professional", score: 65 },
-        { id: "experimental-premium", score: 45 },
+        {
+          id: "soft-intelligent",
+          score: 75,
+          reason: "模型返回格式不稳定，先用柔和智能型作为稳健兜底方向。",
+          keySignals: [brief.productCategory, brief.targetUsers, brief.pageGoal].filter(Boolean),
+          materialPatternIds: ["p1", "p6", "p10", "p12"],
+          materialEvidence: ["使用留白、柔和渐变、滚动揭示和异步反馈来表达清晰的智能产品体验。"],
+          motionDirection: ["用动效解释生成状态，不用装饰性炫光。"],
+          frontendBlueprint: ["首屏保留明确输入区、素材证据区和生成结果预览。"],
+          questionsToResolve: ["是否需要接入真实案例截图或动图素材。"],
+        },
+        { id: "calm-professional", score: 65, materialPatternIds: ["p1", "p4", "p7", "p12"] },
+        { id: "experimental-premium", score: 45, materialPatternIds: ["p2", "p5", "p7", "p10"] },
       ];
     }
   }
