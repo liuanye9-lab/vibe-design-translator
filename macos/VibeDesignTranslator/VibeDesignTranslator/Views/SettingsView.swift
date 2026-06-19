@@ -45,6 +45,15 @@ struct SettingsView: View {
                         .foregroundStyle(.green)
                 }
 
+                if let error = model.errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.orange.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
+                }
+
                 Text("也可以在 Xcode Scheme 环境变量里设置 AGNES_API_KEY；环境变量会优先于 Keychain")
                     .font(.caption)
                     .foregroundStyle(.secondary)
