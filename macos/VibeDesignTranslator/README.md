@@ -14,6 +14,7 @@ Native SwiftUI app for turning a product idea into precise front-end design dire
 - Native clipboard export for the selected execution blueprint and implementation prompt.
 - Native `.md` file export for the selected execution blueprint.
 - Native macOS Design menu for generating, copying, exporting, and clearing sessions with keyboard shortcuts.
+- Native macOS Settings scene for Agnes model and Keychain configuration.
 - Animated SwiftUI material library for layout, color, typography, and interaction patterns.
 - Material category filter and Agent-linked pattern highlighting.
 - Persistent local settings: model configuration is stored in `UserDefaults`, and `AGNES_API_KEY` is stored in macOS Keychain.

@@ -49,5 +49,11 @@ struct VibeDesignTranslatorApp: App {
                 .disabled(appModel.recommendations.isEmpty)
             }
         }
+
+        Settings {
+            SettingsView()
+                .environmentObject(appModel)
+                .frame(width: 680, height: 420)
+        }
     }
 }
