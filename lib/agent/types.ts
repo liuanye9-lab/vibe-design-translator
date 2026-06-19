@@ -126,7 +126,7 @@ export interface AgentRun {
 /** Runtime context available to skills during execution */
 export interface AgentContext {
   projectId?: string | null;
-  provider: "mock" | "openai" | "claude" | "gemini" | "mimo";
+  provider: "mock" | "openai" | "claude" | "gemini" | "mimo" | "agnes";
   isRealAIEnabled: boolean;
   userConfirmed?: boolean;
 }

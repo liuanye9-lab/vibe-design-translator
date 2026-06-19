@@ -2,12 +2,18 @@
   "name": "vibe-design-translator",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "check:i18n": "node scripts/check-i18n-leaks.mjs",
-    "check:bilingual": "node scripts/check-bilingual-mix.mjs"
+    "check:bilingual": "node scripts/check-bilingual-mix.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run check:i18n && npm run check:bilingual && npm run build"
   },
   "dependencies": {
     "next": "^14.2.0",

@@ -11,6 +11,7 @@ import { openaiProvider } from "./openai-provider";
 import { claudeProvider } from "./claude-provider";
 import { geminiProvider } from "./gemini-provider";
 import { mimoProvider } from "./mimo-provider";
+import { agnesProvider } from "./agnes-provider";
 
 export function getDesignAIProvider(): AIProvider {
   // Read env at call time to avoid module-level evaluation issues
@@ -30,6 +31,8 @@ export function getDesignAIProvider(): AIProvider {
       return geminiProvider;
     case "mimo":
       return mimoProvider;
+    case "agnes":
+      return agnesProvider;
     case "mock":
     default:
       return mockProvider;
@@ -53,6 +56,8 @@ export function getVisionDiagnosisProvider(): VisionProvider {
       return geminiProvider;
     case "mimo":
       return mimoProvider;
+    case "agnes":
+      return agnesProvider;
     case "mock":
     default:
       return mockProvider;
