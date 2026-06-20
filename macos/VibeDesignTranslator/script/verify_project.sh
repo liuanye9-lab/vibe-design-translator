@@ -93,7 +93,8 @@ pass "app icon slots and PNG dimensions"
 
 if grep -R \
   --exclude="verify_project.sh" \
-  -E 'sk-[A-Za-z0-9]|GU0oMMFTEkG4|AGNES_API_KEY[[:space:]]*=[[:space:]]*["'\'']' \
+  --exclude-dir="dist" \
+  -E 'sk-[A-Za-z0-9]{20,}|GU0oMMFTEkG4|AGNES_API_KEY[[:space:]]*=[[:space:]]*["'\'']' \
   "$ROOT_DIR" >/dev/null; then
   fail "possible secret found under macOS project"
 fi

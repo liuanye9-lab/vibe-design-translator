@@ -8,7 +8,8 @@ CONFIGURATION="${CONFIGURATION:-Debug}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_FILE="$ROOT_DIR/VibeDesignTranslator.xcodeproj"
-DERIVED_DATA="$ROOT_DIR/dist/DerivedData"
+DEFAULT_DERIVED_DATA="${TMPDIR:-/tmp}/vibe-design-translator-derived-data"
+DERIVED_DATA="${DERIVED_DATA:-$DEFAULT_DERIVED_DATA}"
 APP_BUNDLE="$DERIVED_DATA/Build/Products/$CONFIGURATION/$APP_NAME.app"
 APP_BINARY="$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 
@@ -29,9 +30,17 @@ require_xcode() {
   fi
 }
 
+clean_extended_attributes() {
+  if command -v xattr >/dev/null 2>&1; then
+    xattr -cr "$ROOT_DIR/VibeDesignTranslator/Resources" >/dev/null 2>&1 || true
+    xattr -cr "$DERIVED_DATA" >/dev/null 2>&1 || true
+  fi
+}
+
 build_app() {
   require_xcode
   pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+  clean_extended_attributes
   xcodebuild \
     -project "$PROJECT_FILE" \
     -scheme "$APP_NAME" \
