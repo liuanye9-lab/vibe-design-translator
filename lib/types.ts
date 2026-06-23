@@ -104,6 +104,13 @@ export type MaterialMediaKind =
   | "static-image"
   | "reference-link";
 
+export type MaterialCategory =
+  | "motion"
+  | "color"
+  | "ui"
+  | "layout"
+  | "typography";
+
 export interface MaterialSource {
   id: string;
   name: string;
@@ -117,6 +124,7 @@ export interface MaterialAsset {
   id: string;
   patternId: string;
   title: string;
+  category?: MaterialCategory;
   sourceId: string;
   mediaKind: MaterialMediaKind;
   motionSpec: string;
@@ -126,6 +134,45 @@ export interface MaterialAsset {
   frontendNotes: string[];
   tags: string[];
   directionFit: string[];
+  recommendationAngle?: string;
+  qualityScore?: number;
+  examples?: string[];
+  implementationRules?: string[];
+  pitfalls?: string[];
+  recommendedFor?: string[];
+  previewKind?: "flow" | "phones" | "particles" | "hero" | "portfolio" | "palette";
+  iconText?: string;
+}
+
+export interface MaterialCategoryPlaybook {
+  id: MaterialCategory;
+  label: string;
+  role: string;
+  cases: string[];
+  useWhen: string[];
+  avoidWhen: string[];
+  frontendRules: string[];
+  evaluationChecklist: string[];
+}
+
+export interface MaterialAgentBlueprintRow {
+  rank: string;
+  title: string;
+  tags: string[];
+  reason: string;
+  difficulty: number;
+  result: string;
+  color: "blue" | "green" | "orange";
+}
+
+export interface MaterialAgentResult {
+  reply: string;
+  summaryItems: string[];
+  recommendedCardIds: string[];
+  blueprintRows: MaterialAgentBlueprintRow[];
+  focusTabs: MaterialCategory[];
+  provider: string;
+  fallback: boolean;
 }
 
 // ============================================================

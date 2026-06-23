@@ -8,9 +8,11 @@ struct VibeDesignTranslatorApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appModel)
-                .frame(minWidth: 1180, minHeight: 760)
+                .preferredColorScheme(.light)
+                .frame(minWidth: 1220, minHeight: 820)
         }
         .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1360, height: 900)
         .commands {
             CommandGroup(replacing: .newItem) { }
             CommandMenu("设计") {

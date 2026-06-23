@@ -68,10 +68,11 @@ struct SettingsStore {
         var query = baseKeychainQuery()
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecItemNotFound {
+        if status == errSecItemNotFound || status == errSecInteractionNotAllowed {
             return nil
         }
         guard status == errSecSuccess else {
