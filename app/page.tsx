@@ -587,7 +587,8 @@ function MaterialCardView({
   onToggleFavorite: () => void;
 }) {
   const source = getMaterialSourceById(card.sourceId);
-  const href = source?.href || "/patterns";
+  const detailHref = `/materials/${card.id}`;
+  const sourceHref = source?.href || "/patterns";
   const note = card.recommendationAngle || card.motionSpec;
 
   return (
@@ -607,7 +608,7 @@ function MaterialCardView({
           <Bookmark className="h-5 w-5" />
         </button>
       </div>
-      <Link href={href} target={href.startsWith("http") ? "_blank" : undefined} className="material-title">
+      <Link href={detailHref} className="material-title">
         {card.title}
       </Link>
       <div className="material-tags">
@@ -615,6 +616,10 @@ function MaterialCardView({
       </div>
       <Preview kind={getPreviewKind(card)} />
       <p className="material-note">参考要点：{note}</p>
+      <div className="material-card-actions">
+        <Link href={detailHref}>查看详情</Link>
+        <Link href={sourceHref} target={sourceHref.startsWith("http") ? "_blank" : undefined}>打开来源</Link>
+      </div>
     </article>
   );
 }

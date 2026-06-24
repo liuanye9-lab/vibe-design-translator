@@ -79,7 +79,7 @@ export default function FavoritesPage() {
 
 function FavoriteCard({ asset, onRemove }: { asset: MaterialAsset; onRemove: () => void }) {
   const source = getMaterialSourceById(asset.sourceId);
-  const href = source?.href || "/patterns";
+  const sourceHref = source?.href || "/patterns";
 
   return (
     <GlassCard className="flex h-full flex-col p-5">
@@ -102,10 +102,15 @@ function FavoriteCard({ asset, onRemove }: { asset: MaterialAsset; onRemove: () 
           </span>
         ))}
       </div>
-      <Link href={href} target={href.startsWith("http") ? "_blank" : undefined} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[var(--color-accent-ios-blue)]">
-        打开来源
-        <ExternalLink className="h-4 w-4" />
-      </Link>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Link href={`/materials/${asset.id}`} className="inline-flex items-center gap-2 text-sm font-bold text-[var(--color-accent-ios-blue)]">
+          查看详情
+        </Link>
+        <Link href={sourceHref} target={sourceHref.startsWith("http") ? "_blank" : undefined} className="inline-flex items-center gap-2 text-sm font-bold text-[var(--color-text-secondary)]">
+          打开来源
+          <ExternalLink className="h-4 w-4" />
+        </Link>
+      </div>
     </GlassCard>
   );
 }
