@@ -199,6 +199,10 @@ button {
   min-height: calc(100vh - 64px);
 }
 
+.side-collapsed-layout {
+  grid-template-columns: 52px minmax(390px, 0.82fr) minmax(620px, 1.55fr);
+}
+
 .agent-side-nav {
   position: sticky;
   top: 64px;
@@ -241,6 +245,19 @@ button {
   background: #ffffff;
   color: #94a3b8;
   font-size: 18px;
+}
+
+.agent-side-nav-collapsed {
+  padding-inline: 8px;
+}
+
+.agent-side-nav-collapsed .side-nav-item {
+  width: 38px;
+  min-height: 42px;
+}
+
+.agent-side-nav-collapsed .side-nav-item span {
+  display: none;
 }
 
 .agent-chat-workspace {
@@ -601,6 +618,44 @@ button {
   font-weight: 800;
 }
 
+.filter-select-shell {
+  position: relative;
+  display: inline-flex;
+  min-width: 142px;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5eaf2;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 0 34px 0 12px;
+}
+
+.filter-select-shell span {
+  color: #94a3b8;
+}
+
+.filter-select-shell select {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  outline: none;
+  appearance: none;
+}
+
+.filter-select-shell svg {
+  position: absolute;
+  right: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
 .view-toggle {
   display: flex;
   margin-left: auto;
@@ -666,6 +721,18 @@ button {
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.04);
 }
 
+.material-empty-state {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .material-card-head {
   display: flex;
   align-items: center;
@@ -699,6 +766,25 @@ button {
   font-size: 11px;
   font-style: normal;
   font-weight: 800;
+}
+
+.bookmark-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #94a3b8;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.bookmark-button:hover,
+.bookmark-button-active {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1263ff;
 }
 
 .material-title {
@@ -810,7 +896,7 @@ button {
   background: radial-gradient(circle at center, #1e1b4b, #0f172a 68%);
 }
 
-.particle-preview span {
+.particle-preview > span:not(.preview-play-indicator) {
   --x: calc((var(--i) * 37) % 100);
   --y: calc((var(--i) * 53) % 100);
   position: absolute;
@@ -825,7 +911,9 @@ button {
   animation-delay: calc(var(--i) * 70ms);
 }
 
-.particle-preview button {
+.preview-play-indicator {
+  display: grid;
+  place-items: center;
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -1032,12 +1120,14 @@ button {
   padding-top: 10px;
 }
 
+.blueprint-actions a,
 .blueprint-actions button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border: 0;
   background: transparent;
+  text-decoration: none;
   color: #1263ff;
   font-size: 12px;
   font-weight: 900;

@@ -4,8 +4,9 @@
 
 "use client";
 
-import { CSSProperties, FormEvent, useMemo, useState } from "react";
+import { CSSProperties, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   Bookmark,
@@ -32,6 +33,7 @@ import {
 } from "lucide-react";
 import {
   MATERIAL_ASSETS,
+  MATERIAL_SOURCES,
   getMaterialSourceById,
   searchMaterialAssets,
 } from "@/lib/material-library";
@@ -41,6 +43,8 @@ type MaterialTab = "recommend" | MaterialCategory;
 type NavItem = "recommend" | "library" | "projects" | "favorites" | "inspiration" | "settings";
 type ViewMode = "grid" | "list";
 type PreviewKind = "flow" | "phones" | "particles" | "hero" | "portfolio" | "palette";
+type SourceFilter = "all" | string;
+type MediaFilter = "all" | MaterialAsset["mediaKind"];
 
 type ChatMessage = {
   role: "user" | "agent";
@@ -51,13 +55,13 @@ type ChatMessage = {
 const seedPrompt =
   "我正在做一个 AI 助手产品的官网，想要科技感、专业、同时要有亲和力，可以帮我推荐一些动效、配色和布局参考吗？希望首屏要有记忆点。";
 
-const navItems: Array<{ id: NavItem; label: string; icon: typeof Sparkles }> = [
-  { id: "recommend", label: "推荐", icon: Sparkles },
-  { id: "library", label: "素材库", icon: Folder },
-  { id: "projects", label: "项目", icon: LayoutGrid },
-  { id: "favorites", label: "收藏", icon: Star },
-  { id: "inspiration", label: "灵感", icon: Lightbulb },
-  { id: "settings", label: "设置", icon: Settings },
+const navItems: Array<{ id: NavItem; label: string; href: string; icon: typeof Sparkles }> = [
+  { id: "recommend", label: "推荐", href: "/", icon: Sparkles },
+  { id: "library", label: "素材库", href: "/patterns", icon: Folder },
+  { id: "projects", label: "项目", href: "/workspace", icon: LayoutGrid },
+  { id: "favorites", label: "收藏", href: "/favorites", icon: Star },
+  { id: "inspiration", label: "灵感", href: "/inspiration", icon: Lightbulb },
+  { id: "settings", label: "设置", href: "/settings", icon: Settings },
 ];
 
 const tabs: Array<{ id: MaterialTab; label: string }> = [
@@ -75,6 +79,25 @@ const quickNeeds = [
   { title: "布局排版", desc: "信息层级与版式建议", icon: Grid2X2, tone: "green" },
   { title: "字体选择", desc: "中英文字体搭配建议", icon: Type, tone: "pink" },
 ];
+
+const mediaFilters: Array<{ id: MediaFilter; label: string }> = [
+  { id: "all", label: "全部媒介" },
+  { id: "css-motion", label: "CSS 动效" },
+  { id: "animated-gif", label: "动图思路" },
+  { id: "video", label: "视频/录屏" },
+  { id: "static-image", label: "静态图片" },
+  { id: "reference-link", label: "参考链接" },
+];
+
+const sceneFilters = [
+  { id: "all", label: "全部场景", query: "" },
+  { id: "hero", label: "首屏/英雄区", query: "首屏 hero Hero 官网" },
+  { id: "ai", label: "AI 产品", query: "AI Agent 智能" },
+  { id: "dashboard", label: "工作台", query: "工作台 dashboard 控制台" },
+  { id: "brand", label: "品牌官网", query: "品牌 官网 作品集" },
+] as const;
+
+const favoriteStorageKey = "vibe_material_favorites";
 
 const defaultBlueprintRows: MaterialAgentBlueprintRow[] = [
   {
@@ -107,12 +130,18 @@ const defaultBlueprintRows: MaterialAgentBlueprintRow[] = [
 ];
 
 export default function HomePage() {
-  const [activeNav, setActiveNav] = useState<NavItem>("recommend");
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<MaterialTab>("recommend");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [sideCollapsed, setSideCollapsed] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>("all");
+  const [sceneFilter, setSceneFilter] = useState<(typeof sceneFilters)[number]["id"]>("all");
   const [query, setQuery] = useState(seedPrompt);
   const [isThinking, setIsThinking] = useState(false);
   const [agentStatus, setAgentStatus] = useState("Agnes AI 已连接素材库");
+  const [quickNeedOffset, setQuickNeedOffset] = useState(0);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [recommendedIds, setRecommendedIds] = useState<string[]>(
     searchMaterialAssets(seedPrompt).slice(0, 6).map((asset) => asset.id)
   );
@@ -132,13 +161,88 @@ export default function HomePage() {
     },
   ]);
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(favoriteStorageKey);
+      setFavoriteIds(saved ? JSON.parse(saved) : []);
+    } catch {
+      setFavoriteIds([]);
+    }
+  }, []);
+
   const visibleCards = useMemo(() => {
     const recommended = recommendedIds
       .map((id) => MATERIAL_ASSETS.find((asset) => asset.id === id))
       .filter((asset): asset is MaterialAsset => Boolean(asset));
-    if (activeTab === "recommend") return recommended.length ? recommended : MATERIAL_ASSETS.slice(0, 6);
-    return MATERIAL_ASSETS.filter((asset) => asset.category === activeTab).slice(0, 6);
-  }, [activeTab, recommendedIds]);
+    const base = activeTab === "recommend"
+      ? (recommended.length ? recommended : MATERIAL_ASSETS)
+      : MATERIAL_ASSETS.filter((asset) => asset.category === activeTab);
+    const scene = sceneFilters.find((item) => item.id === sceneFilter);
+    const sceneQuery = scene?.query.toLowerCase() || "";
+
+    return base
+      .filter((asset) => sourceFilter === "all" || asset.sourceId === sourceFilter)
+      .filter((asset) => mediaFilter === "all" || asset.mediaKind === mediaFilter)
+      .filter((asset) => {
+        if (!sceneQuery) return true;
+        const searchable = [
+          asset.title,
+          asset.motionSpec,
+          asset.recommendationAngle,
+          ...asset.useWhen,
+          ...asset.tags,
+          ...asset.designSignals,
+        ].join(" ").toLowerCase();
+        return sceneQuery.split(" ").some((word) => word && searchable.includes(word));
+      })
+      .slice(0, 9);
+  }, [activeTab, mediaFilter, recommendedIds, sceneFilter, sourceFilter]);
+
+  const displayedQuickNeeds = useMemo(() => {
+    return quickNeeds.map((_, index) => quickNeeds[(index + quickNeedOffset) % quickNeeds.length]);
+  }, [quickNeedOffset]);
+
+  function toggleFavorite(assetId: string) {
+    setFavoriteIds((current) => {
+      const next = current.includes(assetId)
+        ? current.filter((id) => id !== assetId)
+        : [assetId, ...current];
+      window.localStorage.setItem(favoriteStorageKey, JSON.stringify(next));
+      setAgentStatus(next.includes(assetId) ? "已加入收藏，可在收藏页查看" : "已从收藏中移除");
+      return next;
+    });
+  }
+
+  function handleFilePick(file?: File) {
+    if (!file) return;
+    setAgentStatus(`已选择「${file.name}」，下一步可接入素材解析与 Agent 分析`);
+  }
+
+  function enhancePrompt() {
+    const enhanced = `${query.trim() || seedPrompt}\n\n请从动效、配色 token、UI 组件、布局排版、字体选择、适用场景、避坑和前端实现规则七个维度推荐素材，并给出可执行 Blueprint。`;
+    setQuery(enhanced.slice(0, 1000));
+    setAgentStatus("已增强需求描述，发送后 Agnes 会按完整维度推荐");
+  }
+
+  function exportBlueprint() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      query,
+      summaryItems,
+      recommendedCardIds: recommendedIds,
+      blueprintRows,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `vibe-blueprint-${Date.now()}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -196,25 +300,29 @@ export default function HomePage() {
     <main className="design-agent-app">
       <TopBar />
 
-      <div className="design-agent-body">
-        <aside className="agent-side-nav" aria-label="主导航">
+      <div className={sideCollapsed ? "design-agent-body side-collapsed-layout" : "design-agent-body"}>
+        <aside className={sideCollapsed ? "agent-side-nav agent-side-nav-collapsed" : "agent-side-nav"} aria-label="主导航">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = activeNav === item.id;
+            const active = pathname === item.href;
             return (
-              <button
+              <Link
                 key={item.id}
-                type="button"
+                href={item.href}
                 className={active ? "side-nav-item side-nav-item-active" : "side-nav-item"}
-                onClick={() => setActiveNav(item.id)}
               >
                 <Icon className="h-5 w-5" />
                 <span>{item.label}</span>
-              </button>
+              </Link>
             );
           })}
-          <button className="side-collapse" type="button" aria-label="收起侧栏">
-            «
+          <button
+            className="side-collapse"
+            type="button"
+            aria-label={sideCollapsed ? "展开侧栏" : "收起侧栏"}
+            onClick={() => setSideCollapsed((value) => !value)}
+          >
+            {sideCollapsed ? "»" : "«"}
           </button>
         </aside>
 
@@ -255,10 +363,10 @@ export default function HomePage() {
           <section className="quick-need-section">
             <div className="quick-need-title">
               <span>你也可以试试这些需求</span>
-              <button type="button">换一批</button>
+              <button type="button" onClick={() => setQuickNeedOffset((value) => value + 1)}>换一批</button>
             </div>
             <div className="quick-need-grid">
-              {quickNeeds.map((item) => {
+              {displayedQuickNeeds.map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -290,9 +398,22 @@ export default function HomePage() {
             <div className="composer-footer">
               <span>{query.length}/1000</span>
               <div className="composer-actions">
-                <button type="button" aria-label="添加附件"><Paperclip className="h-4 w-4" /></button>
-                <button type="button" aria-label="添加图片"><ImageIcon className="h-4 w-4" /></button>
-                <button type="button" aria-label="智能增强"><Sparkles className="h-4 w-4" /></button>
+                <input
+                  id="material-file-input"
+                  type="file"
+                  className="sr-only"
+                  onChange={(event) => handleFilePick(event.target.files?.[0])}
+                />
+                <button type="button" aria-label="添加附件" onClick={() => document.getElementById("material-file-input")?.click()}><Paperclip className="h-4 w-4" /></button>
+                <input
+                  id="material-image-input"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(event) => handleFilePick(event.target.files?.[0])}
+                />
+                <button type="button" aria-label="添加图片" onClick={() => document.getElementById("material-image-input")?.click()}><ImageIcon className="h-4 w-4" /></button>
+                <button type="button" aria-label="智能增强" onClick={enhancePrompt}><Sparkles className="h-4 w-4" /></button>
                 <button type="submit" className="send-button" aria-label="发送需求" disabled={isThinking}>
                   <Send className="h-4 w-4" />
                 </button>
@@ -318,16 +439,38 @@ export default function HomePage() {
           </div>
 
           <div className="filter-row">
-            {["全部来源", "全部类型", "首屏/英雄区", "科技感"].map((filter) => (
-              <button key={filter} type="button" className="filter-button">
-                {filter}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            ))}
-            <button type="button" className="filter-button">
+            <label className="filter-select-shell">
+              <span>来源</span>
+              <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)}>
+                <option value="all">全部来源</option>
+                {MATERIAL_SOURCES.map((source) => (
+                  <option key={source.id} value={source.id}>{source.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="h-4 w-4" />
+            </label>
+            <label className="filter-select-shell">
+              <span>媒介</span>
+              <select value={mediaFilter} onChange={(event) => setMediaFilter(event.target.value as MediaFilter)}>
+                {mediaFilters.map((filter) => (
+                  <option key={filter.id} value={filter.id}>{filter.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="h-4 w-4" />
+            </label>
+            <label className="filter-select-shell">
+              <span>场景</span>
+              <select value={sceneFilter} onChange={(event) => setSceneFilter(event.target.value as (typeof sceneFilters)[number]["id"])}>
+                {sceneFilters.map((filter) => (
+                  <option key={filter.id} value={filter.id}>{filter.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="h-4 w-4" />
+            </label>
+            <Link href="/patterns" className="filter-button">
               <Settings className="h-4 w-4" />
-              更多筛选
-            </button>
+              高级筛选
+            </Link>
             <div className="view-toggle">
               <button
                 type="button"
@@ -350,11 +493,22 @@ export default function HomePage() {
 
           <div className={viewMode === "grid" ? "material-grid" : "material-list"}>
             {visibleCards.map((card) => (
-              <MaterialCardView key={card.id} card={card} />
+              <MaterialCardView
+                key={card.id}
+                card={card}
+                isFavorite={favoriteIds.includes(card.id)}
+                onToggleFavorite={() => toggleFavorite(card.id)}
+              />
             ))}
           </div>
 
-          <BlueprintTable rows={blueprintRows} />
+          {visibleCards.length === 0 && (
+            <div className="material-empty-state">
+              当前筛选没有匹配素材，试试切换来源、媒介或场景
+            </div>
+          )}
+
+          <BlueprintTable rows={blueprintRows} onExport={exportBlueprint} />
         </section>
       </div>
     </main>
@@ -373,9 +527,9 @@ function TopBar() {
       <nav className="topbar-actions" aria-label="顶部操作">
         <Link href="/patterns"><Grid2X2 className="h-4 w-4" />素材库</Link>
         <Link href="/workspace"><History className="h-4 w-4" />历史记录</Link>
-        <button type="button"><Star className="h-4 w-4" />收藏</button>
-        <button type="button" className="smart-mode"><Sparkles className="h-4 w-4" />智能推荐模式<span /></button>
-        <button type="button" className="icon-only" aria-label="通知"><Bell className="h-4 w-4" /></button>
+        <Link href="/favorites"><Star className="h-4 w-4" />收藏</Link>
+        <Link href="/" className="smart-mode"><Sparkles className="h-4 w-4" />智能推荐模式<span /></Link>
+        <Link href="/settings" className="icon-only" aria-label="通知"><Bell className="h-4 w-4" /></Link>
         <div className="user-avatar" aria-label="用户头像" />
       </nav>
     </header>
@@ -423,7 +577,15 @@ function getIconText(asset: MaterialAsset) {
   return (source?.name || asset.sourceId).slice(0, 1).toUpperCase();
 }
 
-function MaterialCardView({ card }: { card: MaterialAsset }) {
+function MaterialCardView({
+  card,
+  isFavorite,
+  onToggleFavorite,
+}: {
+  card: MaterialAsset;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+}) {
   const source = getMaterialSourceById(card.sourceId);
   const href = source?.href || "/patterns";
   const note = card.recommendationAngle || card.motionSpec;
@@ -436,7 +598,14 @@ function MaterialCardView({ card }: { card: MaterialAsset }) {
           <strong>{source?.name || card.sourceId}</strong>
           <em>{source?.signal || card.mediaKind}</em>
         </div>
-        <Bookmark className="h-5 w-5 text-slate-400" />
+        <button
+          type="button"
+          className={isFavorite ? "bookmark-button bookmark-button-active" : "bookmark-button"}
+          onClick={onToggleFavorite}
+          aria-label={isFavorite ? "取消收藏" : "收藏素材"}
+        >
+          <Bookmark className="h-5 w-5" />
+        </button>
       </div>
       <Link href={href} target={href.startsWith("http") ? "_blank" : undefined} className="material-title">
         {card.title}
@@ -478,7 +647,7 @@ function Preview({ kind }: { kind: PreviewKind }) {
     case "particles":
       return (
         <div className="preview-box particle-preview">
-          <button type="button" aria-label="播放动效"><Play className="h-5 w-5 fill-white" /></button>
+          <span className="preview-play-indicator" aria-hidden="true"><Play className="h-5 w-5 fill-white" /></span>
           {Array.from({ length: 28 }).map((_, index) => <span key={index} style={{ "--i": index } as CSSProperties} />)}
         </div>
       );
@@ -512,7 +681,7 @@ function Preview({ kind }: { kind: PreviewKind }) {
   }
 }
 
-function BlueprintTable({ rows }: { rows: MaterialAgentBlueprintRow[] }) {
+function BlueprintTable({ rows, onExport }: { rows: MaterialAgentBlueprintRow[]; onExport: () => void }) {
   return (
     <section className="blueprint-panel">
       <div className="blueprint-title">
@@ -545,8 +714,8 @@ function BlueprintTable({ rows }: { rows: MaterialAgentBlueprintRow[] }) {
         ))}
       </div>
       <div className="blueprint-actions">
-        <button type="button">查看完整执行方案 →</button>
-        <button type="button"><Download className="h-4 w-4" />导出方案</button>
+        <Link href="/pack">查看完整执行方案 →</Link>
+        <button type="button" onClick={onExport}><Download className="h-4 w-4" />导出方案</button>
       </div>
     </section>
   );

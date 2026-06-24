@@ -4,24 +4,27 @@
 
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDesignStore } from "@/store/use-design-store";
-import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder, Workflow } from "lucide-react";
+import { Sparkles, History, Settings, BookOpen, ArrowLeft, Folder, Workflow, Star, Lightbulb } from "lucide-react";
 import { useI18n } from "@/lib/i18n/use-i18n";
 import { LanguageToggle } from "./language-toggle";
 
 const navItemsKeys = [
   "nav_home",
-  "nav_workspace",
-  "nav_agent_runs",
   "nav_patterns",
+  "nav_workspace",
+  "nav_favorites",
+  "nav_inspiration",
+  "nav_agent_runs",
   "nav_settings",
 ] as const;
 
-const navItemHrefs = ["/", "/workspace", "/agent-runs", "/patterns", "/settings"];
-const navItemIcons = [Sparkles, Folder, Workflow, BookOpen, Settings];
+const navItemHrefs = ["/", "/patterns", "/workspace", "/favorites", "/inspiration", "/agent-runs", "/settings"];
+const navItemIcons = [Sparkles, BookOpen, Folder, Star, Lightbulb, Workflow, Settings];
 
 interface TopNavProps {
   className?: string;
@@ -39,6 +42,7 @@ export function TopNav({
   const pathname = usePathname();
   const history = useDesignStore((state) => state.history);
   const { t } = useI18n();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = navItemsKeys.map((key, i) => ({
     href: navItemHrefs[i],
@@ -134,6 +138,10 @@ export function TopNav({
 
             {/* Mobile menu button */}
             <button
+              type="button"
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? "关闭导航" : "打开导航"}
+              onClick={() => setMobileOpen((value) => !value)}
               className={cn(
                 "md:hidden p-2 rounded-xl",
                 "text-[var(--color-text-secondary)]",
@@ -157,6 +165,34 @@ export function TopNav({
             </button>
           </div>
         </div>
+
+        {mobileOpen && (
+          <div className="border-t border-[var(--color-border)] py-3 md:hidden">
+            <div className="grid gap-1">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                        : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-primary)]"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
