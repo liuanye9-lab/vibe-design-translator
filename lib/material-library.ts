@@ -1,4 +1,10 @@
 import type { MaterialAsset, MaterialCategory, MaterialCategoryPlaybook, MaterialSource } from "@/lib/types";
+import {
+  ADDITIONAL_MATERIAL_ASSETS,
+  ADDITIONAL_MATERIAL_SOURCES,
+  DESIGN_FRAMEWORKS,
+  buildDesignKnowledgeContext,
+} from "@/lib/design-knowledge";
 
 export const MATERIAL_CATEGORIES: Array<{
   id: "all" | MaterialCategory;
@@ -62,6 +68,7 @@ export const MATERIAL_SOURCES: MaterialSource[] = [
     signal: "品牌配色关系",
     note: "用于生成主色、辅助色、背景色和可读性之间的约束。",
   },
+  ...ADDITIONAL_MATERIAL_SOURCES,
 ];
 
 export const MATERIAL_CATEGORY_PLAYBOOKS: MaterialCategoryPlaybook[] = [
@@ -458,6 +465,7 @@ export const MATERIAL_ASSETS: MaterialAsset[] = [
     recommendationAngle: "把抽象的动效变成可浏览、可筛选、可复用的素材。",
     qualityScore: 93,
   },
+  ...ADDITIONAL_MATERIAL_ASSETS,
 ];
 
 export function getMaterialSourceById(sourceId: string): MaterialSource | undefined {
@@ -492,6 +500,10 @@ export function searchMaterialAssets(query: string, category: "all" | MaterialCa
         ...asset.avoidWhen,
         ...asset.designSignals,
         ...asset.frontendNotes,
+        ...(asset.examples || []),
+        ...(asset.implementationRules || []),
+        ...(asset.pitfalls || []),
+        ...(asset.recommendedFor || []),
         ...asset.tags,
         ...asset.directionFit,
       ]
@@ -570,7 +582,7 @@ export function buildMaterialContextForAgent(): string {
     ].join(" | ");
   }).join("\n");
 
-  return `${playbookContext}\n\n${assetContext}`;
+  return `${playbookContext}\n\n${buildDesignKnowledgeContext()}\n\n${assetContext}`;
 }
 
 export function getMaterialCategoryPlaybook(category: MaterialCategory): MaterialCategoryPlaybook | undefined {
@@ -583,7 +595,7 @@ export function getMaterialAssetsByIds(ids: string[]): MaterialAsset[] {
 }
 
 export function summarizeMaterialLibraryForPrompt(): string {
-  return MATERIAL_CATEGORY_PLAYBOOKS.map((playbook) => {
+  const categorySummary = MATERIAL_CATEGORY_PLAYBOOKS.map((playbook) => {
     const assets = MATERIAL_ASSETS
       .filter((asset) => asset.category === playbook.id)
       .slice(0, 6)
@@ -591,4 +603,10 @@ export function summarizeMaterialLibraryForPrompt(): string {
       .join("、");
     return `${playbook.label}：${playbook.role}；代表素材=${assets}`;
   }).join("\n");
+
+  const frameworkSummary = DESIGN_FRAMEWORKS.map((framework) => (
+    `${framework.id}:${framework.title}=${framework.coreIdea}`
+  )).join("\n");
+
+  return `${categorySummary}\n\n顶尖设计框架：\n${frameworkSummary}`;
 }

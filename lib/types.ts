@@ -95,7 +95,13 @@ export type MaterialSourceKind =
   | "product-ui"
   | "website-inspiration"
   | "template"
-  | "color-system";
+  | "color-system"
+  | "motion-library"
+  | "typography-system"
+  | "component-library"
+  | "design-system"
+  | "creative-tech"
+  | "ux-research";
 
 export type MaterialMediaKind =
   | "css-motion"
@@ -173,6 +179,19 @@ export interface MaterialAgentResult {
   focusTabs: MaterialCategory[];
   provider: string;
   fallback: boolean;
+}
+
+export interface FrontendDesignFramework {
+  id: string;
+  title: string;
+  category: MaterialCategory;
+  sourceIds: string[];
+  coreIdea: string;
+  thinkingModel: string[];
+  transferablePatterns: string[];
+  frontendImplementation: string[];
+  evaluationQuestions: string[];
+  avoidWhen: string[];
 }
 
 // ============================================================
